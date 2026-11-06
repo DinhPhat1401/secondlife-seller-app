@@ -30,9 +30,9 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
     try {
       final picked = await _picker.pickImage(
         source: source,
-        maxWidth: 1600,
-        maxHeight: 1600,
-        imageQuality: 85,
+        maxWidth: 1280,
+        maxHeight: 1280,
+        imageQuality: 80,
       );
       if (picked != null) {
         final currentPhotos = List<File>.from(ref.read(createListingNotifierProvider).photos);
@@ -415,6 +415,35 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               child: Text(
                 state.errorMessage!,
                 style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // AI Processing notice
+          if (state.isLoading) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryLight.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              ),
+              child: const Row(
+                children: [
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Đang gửi ảnh và trợ lý AI đang phân tích chi tiết sản phẩm... Quá trình có thể mất 15-30 giây.',
+                      style: TextStyle(fontSize: 12, color: AppColors.primaryHover, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),

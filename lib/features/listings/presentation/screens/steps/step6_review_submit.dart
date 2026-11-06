@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -146,10 +147,22 @@ class Step6ReviewSubmit extends ConsumerWidget {
 
                 const Text('Mô tả sản phẩm:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 6),
-                Text(
-                  state.description.isNotEmpty ? state.description : 'Chưa có mô tả',
-                  style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
-                ),
+                state.description.isNotEmpty
+                    ? MarkdownBody(
+                        data: state.description,
+                        selectable: true,
+                        softLineBreak: true,
+                        styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                          p: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.45),
+                          strong: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                          pPadding: const EdgeInsets.only(bottom: 6),
+                          listBullet: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                        ),
+                      )
+                    : const Text(
+                        'Chưa có mô tả',
+                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
+                      ),
                 const Divider(height: 24),
 
                 const Text('Thông số vận chuyển kiện hàng:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:uuid/uuid.dart';
+import 'package:secondlife_app_seller/core/config/app_config.dart';
 import 'package:secondlife_app_seller/core/network/api_client.dart';
 import 'package:secondlife_app_seller/core/network/api_endpoints.dart';
 import 'package:secondlife_app_seller/core/network/error_handler.dart';
@@ -56,7 +57,11 @@ class PostRepository {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.postsInit,
       data: formData,
-      options: Options(contentType: 'multipart/form-data'),
+      options: Options(
+        contentType: 'multipart/form-data',
+        sendTimeout: const Duration(seconds: 90),
+        receiveTimeout: AppConfig.aiTimeout,
+      ),
     );
 
     if (response.data == null) {
@@ -78,7 +83,11 @@ class PostRepository {
     final response = await client.post<dynamic>(
       ApiEndpoints.aiChat,
       data: formData,
-      options: Options(contentType: 'multipart/form-data'),
+      options: Options(
+        contentType: 'multipart/form-data',
+        sendTimeout: const Duration(seconds: 45),
+        receiveTimeout: AppConfig.aiTimeout,
+      ),
     );
 
     final data = response.data;
@@ -92,21 +101,27 @@ class PostRepository {
     throw AppException(message: 'Không nhận được phản hồi từ AI');
   }
 
-  Future<String> finalizeChat({
+  Future<PostFinalizeResponseModel> finalizeChat({
     required String sessionId,
     String? message,
   }) async {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.postFinalizeChat(sessionId),
       data: message != null ? {'message': message} : {},
+      options: Options(
+        sendTimeout: const Duration(seconds: 30),
+        receiveTimeout: AppConfig.aiTimeout,
+      ),
     );
 
-    final data = response.data ?? {};
-    final desc = data['description'] ?? data['finalDescription'] ?? data['data']?['description'];
-    if (desc != null && desc.toString().isNotEmpty) {
-      return desc.toString();
+    final data = response.data;
+    if (data != null) {
+      final model = PostFinalizeResponseModel.fromJson(data);
+      if (model.description.isNotEmpty) {
+        return model;
+      }
     }
-    throw AppException(message: 'Không thể tổng hợp mô tả từ trợ lý AI');
+    throw AppException(message: 'Không thể tổng hợp bài mô tả từ trợ lý AI');
   }
 
   Future<String> regenerateChat({
@@ -116,6 +131,10 @@ class PostRepository {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.postRegenerateChat(sessionId),
       data: message != null ? {'message': message} : {},
+      options: Options(
+        sendTimeout: const Duration(seconds: 30),
+        receiveTimeout: AppConfig.aiTimeout,
+      ),
     );
 
     final data = response.data ?? {};
@@ -133,6 +152,10 @@ class PostRepository {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.postSuggestTitle(postId),
       data: context != null ? {'context': context} : {},
+      options: Options(
+        sendTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 60),
+      ),
     );
 
     final data = response.data ?? {};
@@ -149,6 +172,10 @@ class PostRepository {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.postAiPriceEstimation(postId),
       data: {'requestId': const Uuid().v4()},
+      options: Options(
+        sendTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 60),
+      ),
     );
 
     if (response.data == null) {

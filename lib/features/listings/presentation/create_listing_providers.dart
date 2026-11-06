@@ -247,18 +247,23 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
 
   // Finalize AI Chat into complete product description
   Future<bool> finalizeDescription([String? extraNote]) async {
-    if (state.aiSessionId == null) return false;
+    if (state.aiSessionId == null) {
+      state = state.copyWith(errorMessage: 'Không tìm thấy phiên khảo sát AI');
+      return false;
+    }
 
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final desc = await _repo.finalizeChat(
+      final res = await _repo.finalizeChat(
         sessionId: state.aiSessionId!,
         message: extraNote,
       );
 
+      final finalDesc = res.description.isNotEmpty ? res.description : state.description;
       state = state.copyWith(
         isLoading: false,
-        description: desc,
+        description: finalDesc,
+        title: (res.title != null && res.title!.isNotEmpty) ? res.title! : state.title,
         step: 2, // Advance to Specs & Title step
       );
       return true;
@@ -266,6 +271,11 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
       return false;
     }
+  }
+
+  // Skip AI Chat and go directly to Specs (Step 3)
+  void skipToSpecs() {
+    state = state.copyWith(step: 2, errorMessage: null);
   }
 
   // Step 3: Suggest SEO Title with AI

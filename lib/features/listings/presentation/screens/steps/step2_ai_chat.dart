@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:secondlife_app_seller/core/theme/app_colors.dart';
 import 'package:secondlife_app_seller/shared/widgets/sl_button.dart';
@@ -22,6 +23,21 @@ class _Step2AiChatState extends ConsumerState<Step2AiChat> {
     super.dispose();
   }
 
+  String _formatMarkdown(String raw) {
+    var text = raw.trim();
+    // Ensure clean line breaks before bold numbered points like **1. ...** or **2. ...**
+    text = text.replaceAllMapped(
+      RegExp(r'(?<!\n)\n\s*(\*\*\d+\.)'),
+      (match) => '\n\n${match.group(1)}',
+    );
+    // Ensure clean line breaks before bullet points
+    text = text.replaceAllMapped(
+      RegExp(r'(?<!\n)\n\s*(\*|\-)\s+'),
+      (match) => '\n\n${match.group(1)} ',
+    );
+    return text;
+  }
+
   void _sendMessage([String? quickText]) {
     final text = quickText ?? _textController.text;
     if (text.trim().isEmpty) return;
@@ -38,6 +54,28 @@ class _Step2AiChatState extends ConsumerState<Step2AiChat> {
         );
       }
     });
+  }
+
+  Future<void> _handleFinalize() async {
+    final success = await ref.read(createListingNotifierProvider.notifier).finalizeDescription();
+    if (!success && mounted) {
+      final err = ref.read(createListingNotifierProvider).errorMessage ?? 'Không thể tổng hợp bài mô tả từ AI';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(err),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 5),
+          action: SnackBarAction(
+            label: 'Sang Bước 3',
+            textColor: Colors.white,
+            onPressed: () {
+              ref.read(createListingNotifierProvider.notifier).skipToSpecs();
+            },
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -126,14 +164,56 @@ class _Step2AiChatState extends ConsumerState<Step2AiChat> {
                             ),
                           ],
                         ),
-                        child: Text(
-                          msg.content,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isUser ? Colors.white : AppColors.textPrimary,
-                            height: 1.4,
-                          ),
-                        ),
+                        child: isUser
+                            ? Text(
+                                msg.content,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.white,
+                                  height: 1.4,
+                                ),
+                              )
+                            : MarkdownBody(
+                                data: _formatMarkdown(msg.content),
+                                selectable: true,
+                                softLineBreak: true,
+                                styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                                  p: const TextStyle(
+                                    fontSize: 13,
+                                    color: AppColors.textPrimary,
+                                    height: 1.5,
+                                  ),
+                                  pPadding: const EdgeInsets.only(bottom: 6),
+                                  strong: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF111827),
+                                  ),
+                                  em: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                  h1: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF111827),
+                                  ),
+                                  h2: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF111827),
+                                  ),
+                                  h3: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF111827),
+                                  ),
+                                  listBullet: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  listIndent: 16,
+                                  blockSpacing: 8,
+                                ),
+                              ),
                       ),
                     ),
                   ],
@@ -208,14 +288,110 @@ class _Step2AiChatState extends ConsumerState<Step2AiChat> {
               ),
               const SizedBox(height: 12),
 
+              // AI Loading status notice
+              if (state.isLoading) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Trợ lý AI đang đọc nội dung khảo sát để sinh bài mô tả chuẩn SEO...',
+                          style: TextStyle(fontSize: 12, color: AppColors.primaryHover, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Error banner with retry & skip actions
+              if (state.errorMessage != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorLight,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(Icons.error_outline, color: AppColors.error, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              state.errorMessage!,
+                              style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: () {
+                              ref.read(createListingNotifierProvider.notifier).skipToSpecs();
+                            },
+                            child: const Text('Bỏ qua & Sang Bước 3', style: TextStyle(fontSize: 12, color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.error,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: () => _handleFinalize(),
+                            child: const Text('Thử lại', style: TextStyle(fontSize: 12)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
               // Finalize Description Button
               SlButton(
                 text: 'Hoàn Tất Khảo Sát & Sinh Mô Tả AI',
-                icon: const Icon(Icons.check_circle_outline, color: Colors.white, size: 20),
+                icon: const Icon(Icons.auto_awesome, color: Colors.white, size: 20),
                 isLoading: state.isLoading,
-                onPressed: () async {
-                  await ref.read(createListingNotifierProvider.notifier).finalizeDescription();
-                },
+                onPressed: () => _handleFinalize(),
+              ),
+              const SizedBox(height: 6),
+
+              // Skip option
+              TextButton(
+                onPressed: state.isLoading
+                    ? null
+                    : () {
+                        ref.read(createListingNotifierProvider.notifier).skipToSpecs();
+                      },
+                child: const Text(
+                  'Bỏ qua khảo sát & Sang Bước 3 (Tự nhập thông số)',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                ),
               ),
             ],
           ),

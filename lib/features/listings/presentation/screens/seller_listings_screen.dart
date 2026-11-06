@@ -312,10 +312,10 @@ class _SellerListingsScreenState extends ConsumerState<SellerListingsScreen>
                             ),
                             child: Text(
                               item.itemCondition.code == 'LIKE_NEW'
-                                  ? 'Mới 99%'
+                                  ? 'Như mới'
                                   : item.itemCondition.code == 'USED_GOOD'
-                                      ? 'Tốt 90-95%'
-                                      : 'Khá 80-85%',
+                                      ? 'Tốt'
+                                      : 'Khá',
                               style: const TextStyle(fontSize: 10, color: AppColors.textSecondary),
                             ),
                           ),

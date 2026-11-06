@@ -79,9 +79,14 @@ class _BuyCreditsScreenState extends ConsumerState<BuyCreditsScreen>
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
-              Icon(Icons.check_circle, color: AppColors.success, size: 28),
+              Icon(Icons.check_circle, color: AppColors.success, size: 26),
               SizedBox(width: 8),
-              Text('Mua gói thành công!'),
+              Expanded(
+                child: Text(
+                  'Mua gói thành công!',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
             ],
           ),
           content: Column(

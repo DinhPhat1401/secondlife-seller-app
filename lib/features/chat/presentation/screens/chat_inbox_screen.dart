@@ -217,7 +217,7 @@ class _ChatInboxScreenState extends ConsumerState<ChatInboxScreen> {
           ],
           const SizedBox(height: 2),
           Text(
-            room.lastMessage ?? 'Bắt đầu cuộc trò chuyện...',
+            room.displayLastMessage,
             style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

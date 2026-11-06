@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../orders/presentation/screens/seller_orders_screen.dart';
-import '../../chat/presentation/screens/chat_inbox_screen.dart';
+import '../../profile/presentation/screens/seller_profile_screen.dart';
 import '../../listings/presentation/screens/seller_listings_screen.dart';
 import 'dashboard_tab.dart';
 
@@ -21,7 +21,7 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
     const DashboardTab(),
     const SellerListingsScreen(),
     const SellerOrdersScreen(),
-    const ChatInboxScreen(),
+    const SellerProfileScreen(),
   ];
 
   @override
@@ -50,11 +50,11 @@ class _MainShellScreenState extends ConsumerState<MainShellScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(0, Icons.dashboard_outlined, Icons.dashboard, 'Tổng quan'),
-              _buildNavItem(1, Icons.inventory_2_outlined, Icons.inventory_2, 'Tin đăng'),
+              _buildNavItem(0, Icons.storefront_outlined, Icons.storefront_rounded, 'Tổng quan'),
+              _buildNavItem(1, Icons.inventory_2_outlined, Icons.inventory_2_rounded, 'Tin đăng'),
               const SizedBox(width: 44), // Space for notched FAB
-              _buildNavItem(2, Icons.local_shipping_outlined, Icons.local_shipping, 'Đơn hàng'),
-              _buildNavItem(3, Icons.chat_bubble_outline_rounded, Icons.chat_bubble_rounded, 'Tin nhắn'),
+              _buildNavItem(2, Icons.receipt_long_outlined, Icons.receipt_long_rounded, 'Đơn bán'),
+              _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded, 'Tài khoản'),
             ],
           ),
         ),

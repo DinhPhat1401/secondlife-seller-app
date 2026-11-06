@@ -1,4 +1,85 @@
 import 'dart:convert';
+import 'package:intl/intl.dart';
+
+String formatChatPreview(String? rawMessage) {
+  if (rawMessage == null || rawMessage.trim().isEmpty) {
+    return 'Bắt đầu cuộc trò chuyện...';
+  }
+  final trimmed = rawMessage.trim();
+
+  // Handle "SYSTEM: {...}" format
+  if (trimmed.startsWith('SYSTEM:')) {
+    final payloadStr = trimmed.length > 7 ? trimmed.substring(7).trim() : '';
+    if (payloadStr.isEmpty) {
+      return 'Thông báo hệ thống';
+    }
+    try {
+      final parsed = jsonDecode(payloadStr);
+      if (parsed is Map) {
+        final type = parsed['type']?.toString().toUpperCase();
+        final status = parsed['status']?.toString().toUpperCase();
+        final price = (parsed['price'] as num?)?.toDouble();
+        final formattedPrice = price != null
+            ? NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(price)
+            : '';
+
+        if (type == 'OFFER' || type == 'COUNTER_OFFER') {
+          if (status == 'ACCEPTED') {
+            return formattedPrice.isNotEmpty
+                ? 'Đã chấp thuận đề xuất giá: $formattedPrice'
+                : 'Đã chấp thuận đề xuất giá';
+          } else if (status == 'REJECTED') {
+            return formattedPrice.isNotEmpty
+                ? 'Đã từ chối đề xuất giá: $formattedPrice'
+                : 'Đã từ chối đề xuất giá';
+          } else if (status == 'CANCELLED' || status == 'EXPIRED') {
+            return 'Đề xuất giá đã hết hiệu lực';
+          } else {
+            return formattedPrice.isNotEmpty
+                ? 'Đề xuất giá mới: $formattedPrice'
+                : 'Đã gửi đề xuất giá mới';
+          }
+        }
+      }
+    } catch (_) {}
+    return payloadStr;
+  }
+
+  // Handle raw JSON format: {"type":"OFFER", ...}
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      final parsed = jsonDecode(trimmed);
+      if (parsed is Map) {
+        final type = parsed['type']?.toString().toUpperCase();
+        final status = parsed['status']?.toString().toUpperCase();
+        final price = (parsed['price'] as num?)?.toDouble();
+        final formattedPrice = price != null
+            ? NumberFormat.currency(locale: 'vi_VN', symbol: 'đ', decimalDigits: 0).format(price)
+            : '';
+
+        if (type == 'OFFER' || type == 'COUNTER_OFFER') {
+          if (status == 'ACCEPTED') {
+            return formattedPrice.isNotEmpty
+                ? 'Đã chấp thuận đề xuất giá: $formattedPrice'
+                : 'Đã chấp thuận đề xuất giá';
+          } else if (status == 'REJECTED') {
+            return formattedPrice.isNotEmpty
+                ? 'Đã từ chối đề xuất giá: $formattedPrice'
+                : 'Đã từ chối đề xuất giá';
+          } else if (status == 'CANCELLED' || status == 'EXPIRED') {
+            return 'Đề xuất giá đã hết hiệu lực';
+          } else {
+            return formattedPrice.isNotEmpty
+                ? 'Đề xuất giá mới: $formattedPrice'
+                : 'Đã gửi đề xuất giá mới';
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  return rawMessage;
+}
 
 class ChatRoomModel {
   final String id;
@@ -28,6 +109,8 @@ class ChatRoomModel {
     this.lastMessage,
     this.updatedAt,
   });
+
+  String get displayLastMessage => formatChatPreview(lastMessage);
 
   factory ChatRoomModel.fromJson(Map<String, dynamic> json) {
     return ChatRoomModel(
@@ -64,19 +147,7 @@ class ChatMessageModel {
 
   bool get isSystem => messageContent.trim().startsWith('SYSTEM:');
 
-  String get cleanText {
-    if (isSystem) {
-      final raw = messageContent.trim().substring(7).trim();
-      try {
-        final parsed = jsonDecode(raw);
-        if (parsed is Map && parsed['type'] == 'OFFER') {
-          return 'Đề xuất giá mới: ${parsed['price']} đ';
-        }
-      } catch (_) {}
-      return raw;
-    }
-    return messageContent;
-  }
+  String get cleanText => formatChatPreview(messageContent);
 
   bool get isOffer {
     if (!isSystem) return false;

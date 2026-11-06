@@ -81,16 +81,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 runSpacing: 8,
                 children: [
                   ActionChip(
-                    label: const Text('Emulator (10.0.2.2)', style: TextStyle(fontSize: 12)),
-                    onPressed: () => controller.text = 'http://10.0.2.2:8080',
+                    avatar: const Icon(Icons.flash_on, size: 14, color: AppColors.primary),
+                    label: const Text('Ngrok Tunnel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                    onPressed: () => controller.text = 'https://clinking-slicing-visibly.ngrok-free.dev',
                   ),
                   ActionChip(
+                    avatar: const Icon(Icons.usb, size: 14, color: AppColors.textSecondary),
                     label: const Text('ADB USB (127.0.0.1)', style: TextStyle(fontSize: 12)),
                     onPressed: () => controller.text = 'http://127.0.0.1:8080',
                   ),
                   ActionChip(
+                    avatar: const Icon(Icons.wifi, size: 14, color: AppColors.textSecondary),
                     label: const Text('Wi-Fi PC (172.16.30.181)', style: TextStyle(fontSize: 12)),
                     onPressed: () => controller.text = 'http://172.16.30.181:8080',
+                  ),
+                  ActionChip(
+                    avatar: const Icon(Icons.phone_android, size: 14, color: AppColors.textSecondary),
+                    label: const Text('Emulator (10.0.2.2)', style: TextStyle(fontSize: 12)),
+                    onPressed: () => controller.text = 'http://10.0.2.2:8080',
                   ),
                 ],
               ),
@@ -102,20 +110,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: const Text('Đóng'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 final newUrl = controller.text.trim();
                 if (newUrl.isNotEmpty) {
-                  setState(() {
-                    AppConfig.customBaseUrl = newUrl;
-                  });
+                  await AppConfig.setCustomBaseUrl(newUrl);
                   ref.invalidate(apiClientProvider);
-                  Navigator.pop(dialogCtx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Đã cập nhật máy chủ: $newUrl'),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                  if (dialogCtx.mounted) {
+                    Navigator.pop(dialogCtx);
+                  }
+                  if (mounted) {
+                    setState(() {});
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Đã cập nhật máy chủ: ${AppConfig.baseUrl}'),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
                 }
               },
               child: const Text('Lưu'),
@@ -143,16 +154,34 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // Logo & Brand Header
                   Center(
                     child: Container(
-                      width: 76,
-                      height: 76,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
                         borderRadius: BorderRadius.circular(22),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: const Icon(
-                        Icons.storefront_rounded,
-                        size: 42,
-                        color: AppColors.primary,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => Container(
+                            color: AppColors.primaryLight,
+                            child: const Icon(
+                              Icons.storefront_rounded,
+                              size: 42,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -260,9 +289,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         children: [
                           const Icon(Icons.dns_outlined, size: 14, color: AppColors.textMuted),
                           const SizedBox(width: 6),
-                          Text(
-                            AppConfig.baseUrl,
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                          Flexible(
+                            child: Text(
+                              AppConfig.baseUrl,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                            ),
                           ),
                           const SizedBox(width: 6),
                           const Icon(Icons.tune_rounded, size: 14, color: AppColors.primary),

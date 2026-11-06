@@ -20,9 +20,11 @@ class ApiClient {
         baseUrl: AppConfig.baseUrl,
         connectTimeout: AppConfig.connectTimeout,
         receiveTimeout: AppConfig.receiveTimeout,
+        sendTimeout: const Duration(seconds: 60),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
       ),
     );
@@ -35,6 +37,7 @@ class ApiClient {
       onRequest: (options, handler) async {
         // Dynamically ensure request uses the latest configured baseUrl
         options.baseUrl = AppConfig.baseUrl;
+        options.headers['ngrok-skip-browser-warning'] = 'true';
 
         // Do not attach token for public auth endpoints
         final path = options.path;

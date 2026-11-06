@@ -31,59 +31,99 @@ class DashboardTab extends ConsumerWidget {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         titleSpacing: 16,
+        elevation: 0.5,
+        backgroundColor: Colors.white,
         title: InkWell(
           onTap: () => context.push('/profile'),
           borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 18,
-                  backgroundColor: AppColors.primaryLight,
-                  child: Text(
-                    user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'S',
-                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 36,
+                  width: 36,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => CircleAvatar(
+                    radius: 18,
+                    backgroundColor: AppColors.primaryLight,
+                    child: Text(
+                      user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'S',
+                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user?.fullName ?? 'Người bán SecondLife',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        user?.isSeller == true ? 'Shop Đã Xác Thực' : 'Chưa Định Danh Người Bán',
-                        style: TextStyle(
-                          fontSize: 11,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.fullName ?? 'Kênh Người Bán',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Row(
+                      children: [
+                        Icon(
+                          user?.isSeller == true ? Icons.verified_rounded : Icons.storefront_outlined,
+                          size: 13,
                           color: user?.isSeller == true ? AppColors.success : AppColors.warning,
-                          fontWeight: FontWeight.w600,
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            user?.isSeller == true ? 'Shop Đã Xác Thực' : 'Chưa Định Danh',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: user?.isSeller == true ? AppColors.success : AppColors.warning,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const Icon(Icons.chevron_right, size: 18, color: AppColors.textMuted),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         actions: [
           IconButton(
-            icon: unreadCount > 0
-                ? Badge(
-                    label: Text('$unreadCount'),
-                    backgroundColor: AppColors.primary,
-                    child: const Icon(Icons.notifications_outlined),
-                  )
-                : const Icon(Icons.notifications_outlined),
-            onPressed: () => context.push('/notifications'),
+            icon: const Icon(Icons.chat_bubble_outline_rounded, size: 23),
+            tooltip: 'Tin nhắn',
+            onPressed: () => context.push('/chats'),
           ),
-          const SizedBox(width: 8),
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.notifications_none_rounded, size: 26),
+                tooltip: 'Thông báo',
+                onPressed: () => context.push('/notifications'),
+              ),
+              if (unreadCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      unreadCount > 9 ? '9+' : '$unreadCount',
+                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 6),
         ],
       ),
       body: RefreshIndicator(

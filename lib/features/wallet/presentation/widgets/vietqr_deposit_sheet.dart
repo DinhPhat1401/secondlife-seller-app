@@ -109,9 +109,14 @@ class _SellerVietQrDepositSheetContentState extends ConsumerState<_SellerVietQrD
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            Icon(Icons.check_circle, color: Colors.green, size: 26),
             SizedBox(width: 8),
-            Text('Nạp Tiền Thành Công!'),
+            Expanded(
+              child: Text(
+                'Nạp Tiền Thành Công!',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
         content: const Text(
@@ -178,7 +183,7 @@ class _SellerVietQrDepositSheetContentState extends ConsumerState<_SellerVietQrD
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '⚠️ Đã chép mã: $text. Tuyệt đối KHÔNG dùng lại nội dung cũ trong danh bạ ngân hàng!',
+                  'Đã chép mã: $text. Tuyệt đối KHÔNG dùng lại nội dung cũ trong danh bạ ngân hàng!',
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
               ),

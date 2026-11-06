@@ -5,6 +5,7 @@ import '../../features/auth/presentation/auth_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/verify_email_screen.dart';
+import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/credits/presentation/screens/buy_credits_screen.dart';
 import '../../features/credits/presentation/screens/credit_ledger_screen.dart';
 import '../../features/dashboard/presentation/main_shell_screen.dart';
@@ -27,11 +28,15 @@ class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
     _ref.listen<AuthState>(
       authNotifierProvider,
-      (_, __) => notifyListeners(),
+      (_, _) => notifyListeners(),
     );
   }
 
   String? redirect(BuildContext context, GoRouterState state) {
+    if (state.matchedLocation == '/splash') {
+      return null;
+    }
+
     final authState = _ref.read(authNotifierProvider);
     final isAuth = authState.isAuthenticated;
     final isAuthRoute = state.matchedLocation == '/login' ||
@@ -70,11 +75,15 @@ final routerProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(routerNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/splash',
     refreshListenable: notifier,
     redirect: notifier.redirect,
 
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),

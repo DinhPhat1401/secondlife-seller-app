@@ -1,7 +1,7 @@
 enum ApplianceCondition {
-  likeNew('LIKE_NEW', 'Mới 99% (Rất ít dùng, đầy đủ phụ kiện)', 'Ngoại hình sáng đẹp như mới, tem niêm phong còn nguyên.'),
-  usedGood('USED_GOOD', 'Tốt 90-95% (Có xước nhẹ, hoạt động tốt)', 'Có vài vết xước nhỏ trong quá trình sử dụng, động cơ êm ái.'),
-  usedFair('USED_FAIR', 'Khá 80-85% (Đã dùng nhiều, chức năng ổn)', 'Ngoại hình ngả màu theo thời gian nhưng máy chạy bền bỉ.');
+  likeNew('LIKE_NEW', 'Như mới (Rất ít dùng, đầy đủ phụ kiện)', 'Ngoại hình sáng đẹp như mới, tem niêm phong còn nguyên.'),
+  usedGood('USED_GOOD', 'Tốt (Có xước nhẹ, hoạt động tốt)', 'Có vài vết xước nhỏ trong quá trình sử dụng, động cơ êm ái.'),
+  usedFair('USED_FAIR', 'Khá (Đã dùng nhiều, chức năng ổn)', 'Ngoại hình ngả màu theo thời gian nhưng máy chạy bền bỉ.');
 
   final String code;
   final String label;
@@ -49,6 +49,28 @@ class PostInitResponseModel {
       initialMessage: (json['initialMessage'] ?? json['aiInitialMessage'])?.toString() ?? '',
       suggestedQuestions: questions,
       visualReport: (json['visualReport'] ?? json['aiDescription'])?.toString(),
+    );
+  }
+}
+
+class PostFinalizeResponseModel {
+  final String? title;
+  final String description;
+  final double? suggestedPrice;
+
+  const PostFinalizeResponseModel({
+    this.title,
+    required this.description,
+    this.suggestedPrice,
+  });
+
+  factory PostFinalizeResponseModel.fromJson(Map<String, dynamic> json) {
+    final payload = (json['data'] is Map<String, dynamic>) ? json['data'] as Map<String, dynamic> : json;
+    final desc = (payload['description'] ?? payload['finalDescription'] ?? payload['content'] ?? '').toString();
+    return PostFinalizeResponseModel(
+      title: payload['title']?.toString(),
+      description: desc,
+      suggestedPrice: (payload['suggestedPrice'] as num?)?.toDouble(),
     );
   }
 }

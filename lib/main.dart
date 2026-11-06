@@ -6,6 +6,7 @@ import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppConfig.init();
   runApp(
     const ProviderScope(
       child: SecondLifeSellerApp(),

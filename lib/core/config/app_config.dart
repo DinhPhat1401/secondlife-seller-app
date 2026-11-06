@@ -1,10 +1,58 @@
-import 'dart:io';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AppConfig {
   static const String appName = 'SecondLife Partner';
 
+  static const String _storageKey = 'sl_seller_custom_base_url';
+  static const _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(resetOnError: true),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
+
   static String? _customBaseUrl;
-  static set customBaseUrl(String? url) => _customBaseUrl = url;
+
+  /// Tự động load URL máy chủ đã lưu từ bộ nhớ an toàn khi khởi chạy app
+  static Future<void> init() async {
+    try {
+      final saved = await _storage.read(key: _storageKey);
+      if (saved != null && saved.trim().isNotEmpty) {
+        if (saved.contains('127.0.0.1') || saved.contains('10.0.2.2')) {
+          await _storage.delete(key: _storageKey);
+          _customBaseUrl = null;
+        } else {
+          _customBaseUrl = _cleanUrl(saved.trim());
+        }
+      }
+    } catch (_) {}
+  }
+
+  /// Cập nhật và lưu bền vững URL máy chủ (hỗ trợ Ngrok HTTPS, IP nội bộ, USB)
+  static Future<void> setCustomBaseUrl(String? url) async {
+    if (url == null || url.trim().isEmpty) {
+      _customBaseUrl = null;
+      try {
+        await _storage.delete(key: _storageKey);
+      } catch (_) {}
+      return;
+    }
+
+    final cleaned = _cleanUrl(url.trim());
+    _customBaseUrl = cleaned;
+    try {
+      await _storage.write(key: _storageKey, value: cleaned);
+    } catch (_) {}
+  }
+
+  static String _cleanUrl(String raw) {
+    var url = raw.trim();
+    while (url.endsWith('/')) {
+      url = url.substring(0, url.length - 1);
+    }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://$url';
+    }
+    return url;
+  }
 
   /// Default API Origin (can be overridden with --dart-define=API_BASE_URL=...)
   static String get baseUrl {
@@ -14,24 +62,26 @@ class AppConfig {
 
     const definedUrl = String.fromEnvironment('API_BASE_URL');
     if (definedUrl.isNotEmpty) {
-      return definedUrl;
+      return _cleanUrl(definedUrl);
     }
 
-    // Default based on platform for local development
-    if (Platform.isAndroid) {
-      // 10.0.2.2 is the standard loopback alias to host machine localhost in Android Emulator
-      return 'http://10.0.2.2:8080';
-    } else if (Platform.isIOS || Platform.isMacOS) {
-      return 'http://localhost:8080';
-    }
-    // Web / Windows / other
-    return 'http://localhost:8080';
+    // Default to active Ngrok tunnel for remote & mobile testing
+    return 'https://clinking-slicing-visibly.ngrok-free.dev';
   }
 
   /// WebSocket URL for STOMP over SockJS
-  static String get wsUrl => '$baseUrl/ws';
+  static String get wsUrl {
+    final base = baseUrl;
+    if (base.startsWith('https://')) {
+      return '${base.replaceFirst('https://', 'wss://')}/ws';
+    } else if (base.startsWith('http://')) {
+      return '${base.replaceFirst('http://', 'ws://')}/ws';
+    }
+    return '$base/ws';
+  }
 
   /// Connection timeout settings
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 20);
+  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 60);
+  static const Duration aiTimeout = Duration(seconds: 120);
 }
