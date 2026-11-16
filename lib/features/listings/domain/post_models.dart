@@ -188,16 +188,22 @@ enum ListingStatus {
       case 'DRAFT':
         return ListingStatus.draft;
       case 'PENDING':
+      case 'PENDING_INSPECTION':
+      case 'PENDING_REVIEW':
         return ListingStatus.pending;
       case 'RESERVED':
+      case 'ESCROW_HOLD':
+      case 'PAYMENT_PENDING':
         return ListingStatus.reserved;
       case 'SOLD':
+      case 'COMPLETED':
         return ListingStatus.sold;
       case 'REJECTED':
         return ListingStatus.rejected;
       case 'HIDDEN':
         return ListingStatus.hidden;
       case 'ACTIVE':
+        return ListingStatus.active;
       default:
         return ListingStatus.active;
     }

@@ -33,8 +33,8 @@ class _SellerListingsScreenState extends ConsumerState<SellerListingsScreen>
     super.initState();
     _tabController = TabController(length: _statusTabs.length, vsync: this);
     _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        final code = _statusTabs[_tabController.index].code;
+      final code = _statusTabs[_tabController.index].code;
+      if (ref.read(sellerListingsNotifierProvider).selectedStatus != code) {
         ref.read(sellerListingsNotifierProvider.notifier).filterByStatus(code);
       }
     });
@@ -81,6 +81,28 @@ class _SellerListingsScreenState extends ConsumerState<SellerListingsScreen>
       case ListingStatus.rejected:
         return AppColors.errorLight;
     }
+  }
+
+  int _getCountForTab(String code, List<SellerListingItemModel> allListings) {
+    if (code == 'ALL') return allListings.length;
+    return allListings.where((item) {
+      switch (code) {
+        case 'ACTIVE':
+          return item.status == ListingStatus.active;
+        case 'PENDING':
+          return item.status == ListingStatus.pending;
+        case 'RESERVED':
+          return item.status == ListingStatus.reserved;
+        case 'SOLD':
+          return item.status == ListingStatus.sold;
+        case 'DRAFT':
+          return item.status == ListingStatus.draft;
+        case 'REJECTED':
+          return item.status == ListingStatus.rejected;
+        default:
+          return false;
+      }
+    }).length;
   }
 
   @override
@@ -157,9 +179,41 @@ class _SellerListingsScreenState extends ConsumerState<SellerListingsScreen>
                 indicatorColor: AppColors.primary,
                 indicatorWeight: 3,
                 tabAlignment: TabAlignment.start,
-                labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
                 unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
-                tabs: _statusTabs.map((t) => Tab(text: t.label)).toList(),
+                onTap: (index) {
+                  final code = _statusTabs[index].code;
+                  ref.read(sellerListingsNotifierProvider.notifier).filterByStatus(code);
+                },
+                tabs: _statusTabs.map((t) {
+                  final count = _getCountForTab(t.code, listingsState.listings);
+                  return Tab(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(t.label),
+                        if (count > 0) ...[
+                          const SizedBox(width: 5),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight.withValues(alpha: 0.35),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '$count',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
@@ -364,6 +418,28 @@ class _SellerListingsScreenState extends ConsumerState<SellerListingsScreen>
               ],
             ),
           ),
+          if (item.status == ListingStatus.rejected && item.rejectionReason != null && item.rejectionReason!.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.errorLight,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline_rounded, size: 14, color: AppColors.error),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Lý do từ chối: ${item.rejectionReason}',
+                      style: const TextStyle(fontSize: 11, color: AppColors.error, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const Divider(height: 1, color: AppColors.divider),
           // Action Buttons Bar
           Padding(
@@ -371,6 +447,19 @@ class _SellerListingsScreenState extends ConsumerState<SellerListingsScreen>
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // If Draft: Continue listing button
+                if (item.status == ListingStatus.draft)
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                    icon: const Icon(Icons.edit_note_rounded, size: 16),
+                    label: const Text('Tiếp Tục Đăng', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    onPressed: () => context.push('/create-listing'),
+                  ),
                 // If Reservation active (BE-TASK-003)
                 if (item.status == ListingStatus.reserved)
                   OutlinedButton.icon(

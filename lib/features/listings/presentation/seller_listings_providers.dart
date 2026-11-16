@@ -44,9 +44,35 @@ class SellerListingsState {
   }
 
   List<SellerListingItemModel> get filteredListings {
-    if (searchQuery.trim().isEmpty) return listings;
+    var result = listings;
+
+    // Filter strictly by selected tab status
+    if (selectedStatus != 'ALL') {
+      result = result.where((item) {
+        switch (selectedStatus) {
+          case 'ACTIVE':
+            return item.status == ListingStatus.active;
+          case 'PENDING':
+            return item.status == ListingStatus.pending;
+          case 'RESERVED':
+            return item.status == ListingStatus.reserved;
+          case 'SOLD':
+            return item.status == ListingStatus.sold;
+          case 'DRAFT':
+            return item.status == ListingStatus.draft;
+          case 'REJECTED':
+            return item.status == ListingStatus.rejected;
+          case 'HIDDEN':
+            return item.status == ListingStatus.hidden;
+          default:
+            return true;
+        }
+      }).toList();
+    }
+
+    if (searchQuery.trim().isEmpty) return result;
     final q = searchQuery.toLowerCase().trim();
-    return listings.where((item) {
+    return result.where((item) {
       return item.title.toLowerCase().contains(q) ||
           item.description.toLowerCase().contains(q);
     }).toList();
@@ -66,11 +92,10 @@ class SellerListingsNotifier extends Notifier<SellerListingsState> {
 
   PostRepository get _repository => ref.read(postRepositoryProvider);
 
-  Future<void> loadListings({String? status}) async {
-    final targetStatus = status ?? state.selectedStatus;
-    state = state.copyWith(isLoading: true, selectedStatus: targetStatus, errorMessage: null);
+  Future<void> loadListings() async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      final items = await _repository.getMyPosts(status: targetStatus);
+      final items = await _repository.getMyPosts();
       state = state.copyWith(listings: items, isLoading: false);
     } catch (e) {
       state = state.copyWith(
@@ -81,7 +106,7 @@ class SellerListingsNotifier extends Notifier<SellerListingsState> {
   }
 
   void filterByStatus(String status) {
-    loadListings(status: status);
+    state = state.copyWith(selectedStatus: status);
   }
 
   void search(String query) {
