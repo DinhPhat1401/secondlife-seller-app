@@ -14,7 +14,7 @@ class ApiClient {
   Stream<void> get onSessionExpired => _sessionExpiredController.stream;
 
   ApiClient({SecureStorageService? storageService})
-      : storage = storageService ?? SecureStorageService() {
+    : storage = storageService ?? SecureStorageService() {
     dio = Dio(
       BaseOptions(
         baseUrl: AppConfig.baseUrl,
@@ -55,6 +55,11 @@ class ApiClient {
         // If 401 Unauthorized, attempt single-flight token refresh
         if (error.response?.statusCode == 401 &&
             !error.requestOptions.path.contains('/api/auth/')) {
+          if (error.requestOptions.extra['authRetry'] == true) {
+            await storage.clearAuth();
+            _sessionExpiredController.add(null);
+            return handler.next(error);
+          }
           final refreshToken = await storage.getRefreshToken();
           if (refreshToken != null && refreshToken.isNotEmpty) {
             try {
@@ -66,21 +71,32 @@ class ApiClient {
               );
 
               final data = refreshResponse.data;
-              final newAccessToken = data?['data']?['accessToken'] ?? data?['accessToken'];
-              final newRefreshToken = data?['data']?['refreshToken'] ?? data?['refreshToken'] ?? refreshToken;
+              final newAccessToken =
+                  data?['data']?['accessToken'] ?? data?['accessToken'];
+              final newRefreshToken =
+                  data?['data']?['refreshToken'] ??
+                  data?['refreshToken'] ??
+                  refreshToken;
 
-              if (newAccessToken != null) {
-                await storage.saveTokens(
-                  accessToken: newAccessToken,
-                  refreshToken: newRefreshToken,
+              if (newAccessToken == null || newAccessToken.toString().isEmpty) {
+                throw StateError(
+                  'Refresh response did not include an access token',
                 );
-
-                // Retry original request with updated access token
-                final newOptions = error.requestOptions;
-                newOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-                final clonedResponse = await dio.fetch(newOptions);
-                return handler.resolve(clonedResponse);
               }
+              await storage.saveTokens(
+                accessToken: newAccessToken.toString(),
+                refreshToken: newRefreshToken.toString(),
+              );
+
+              final newOptions = error.requestOptions.copyWith(
+                headers: {
+                  ...error.requestOptions.headers,
+                  'Authorization': 'Bearer $newAccessToken',
+                },
+                extra: {...error.requestOptions.extra, 'authRetry': true},
+              );
+              final clonedResponse = await dio.fetch(newOptions);
+              return handler.resolve(clonedResponse);
             } catch (_) {
               // Refresh token failed or expired
               await storage.clearAuth();
@@ -137,11 +153,7 @@ class ApiClient {
     T Function(dynamic json)? fromJsonT,
   }) async {
     try {
-      final res = await dio.put(
-        path,
-        data: data,
-        options: options,
-      );
+      final res = await dio.put(path, data: data, options: options);
       return ApiResponse.fromJson(res.data, fromJsonT);
     } on DioException catch (e) {
       throw AppException.fromDio(e);

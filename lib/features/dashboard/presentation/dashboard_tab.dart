@@ -10,6 +10,8 @@ import '../../listings/presentation/seller_listings_providers.dart';
 import '../../notifications/presentation/notification_providers.dart';
 import '../../orders/domain/order_models.dart';
 import '../../orders/presentation/order_providers.dart';
+import '../../reputation/presentation/reputation_providers.dart';
+import '../../shipments/presentation/return_shipping_providers.dart';
 import '../../wallet/presentation/wallet_providers.dart';
 
 class DashboardTab extends ConsumerWidget {
@@ -23,6 +25,8 @@ class DashboardTab extends ConsumerWidget {
     final unreadCount = ref.watch(unreadNotificationCountProvider);
     final listingsState = ref.watch(sellerListingsNotifierProvider);
     final orderState = ref.watch(orderListNotifierProvider);
+    final reputationState = ref.watch(reputationNotifierProvider);
+    final returnDebtState = ref.watch(returnShippingDebtProvider);
     final user = authState.user;
     final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
     final hideBalance = ref.watch(hideWalletBalanceProvider);
@@ -128,13 +132,13 @@ class DashboardTab extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          await Future.wait([
-            ref.read(creditNotifierProvider.notifier).loadInitialData(),
-            ref.read(sellerWalletNotifierProvider.notifier).loadWalletData(),
-            ref.read(sellerListingsNotifierProvider.notifier).loadListings(),
-            ref.read(orderListNotifierProvider.notifier).loadOrders(),
-            ref.read(notificationNotifierProvider.notifier).loadData(),
-          ]);
+          await ref.read(creditNotifierProvider.notifier).loadInitialData();
+          await ref.read(sellerWalletNotifierProvider.notifier).loadWalletData();
+          await ref.read(sellerListingsNotifierProvider.notifier).loadListings();
+          await ref.read(orderListNotifierProvider.notifier).loadOrders();
+          await ref.read(notificationNotifierProvider.notifier).loadData();
+          await ref.read(reputationNotifierProvider.notifier).refresh();
+          await ref.read(returnShippingDebtProvider.notifier).refresh();
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -143,7 +147,7 @@ class DashboardTab extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Banner: Needs eKYC Verification
-            if (user?.isSeller != true)
+            if (user?.isSeller != true) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(16),
@@ -194,7 +198,87 @@ class DashboardTab extends ConsumerWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+            ],
+
+            // Banner: Return Shipping Debt Alert
+            if (returnDebtState.debt.outstandingDebt > 0) ...[
+              InkWell(
+                onTap: () => context.push('/return-shipping-debt'),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.errorLight,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.error, width: 1.2),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.assignment_return_outlined, color: AppColors.error, size: 26),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Nợ Cước Vận Chuyển Hoàn Hàng',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.error),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Bạn có khoản nợ cước ${currencyFormatter.format(returnDebtState.debt.outstandingDebt)} cần tất toán.',
+                              style: const TextStyle(fontSize: 11, color: AppColors.textPrimary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.error),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            // Banner: Reputation Restriction Alert
+            if (reputationState.reputation?.sellingRestricted == true) ...[
+              InkWell(
+                onTap: () => context.push('/reputation'),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.warningLight,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.warning, width: 1.2),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 26),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Hạn Chế Đăng Bán Đang Áp Dụng',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Tài khoản đang bị hạn chế do vi phạm hoặc điểm uy tín thấp.',
+                              style: TextStyle(fontSize: 11, color: AppColors.textPrimary),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.warning),
+                    ],
+                  ),
+                ),
+              ),
+            ],
 
             // Unified Wallet & Credit Hub Card
             Container(
@@ -465,6 +549,54 @@ class DashboardTab extends ConsumerWidget {
               subtitle: const Text('Hỗ trợ trợ lý AI viết mô tả và định giá', style: TextStyle(fontSize: 12)),
               trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
               onTap: () => context.push('/create-listing'),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              tileColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: const BorderSide(color: AppColors.border),
+              ),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.military_tech_outlined, color: Color(0xFFD97706)),
+              ),
+              title: const Text('Điểm Uy Tín Người Bán', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              subtitle: Text(
+                reputationState.reputation?.score != null
+                    ? '${reputationState.reputation!.score!.toStringAsFixed(0)}/100 điểm • ${reputationState.reputation!.tierName}'
+                    : 'Xem đánh giá uy tín và lịch sử vi phạm',
+                style: const TextStyle(fontSize: 12),
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+              onTap: () => context.push('/reputation'),
+            ),
+            const SizedBox(height: 8),
+            ListTile(
+              tileColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: const BorderSide(color: AppColors.border),
+              ),
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(10)),
+                child: const Icon(Icons.assignment_return_outlined, color: AppColors.error),
+              ),
+              title: const Text('Nợ Cước Hoàn Hàng', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+              subtitle: Text(
+                returnDebtState.debt.outstandingDebt > 0
+                    ? 'Còn nợ: ${currencyFormatter.format(returnDebtState.debt.outstandingDebt)}'
+                    : 'Không có nợ cước hoàn trả',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: returnDebtState.debt.outstandingDebt > 0 ? AppColors.error : AppColors.textSecondary,
+                  fontWeight: returnDebtState.debt.outstandingDebt > 0 ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
+              onTap: () => context.push('/return-shipping-debt'),
             ),
             const SizedBox(height: 8),
             ListTile(

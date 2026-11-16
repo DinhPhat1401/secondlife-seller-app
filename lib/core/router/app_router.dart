@@ -21,6 +21,8 @@ import '../../features/chat/presentation/screens/chat_conversation_screen.dart';
 import '../../features/wallet/presentation/screens/seller_wallet_screen.dart';
 import '../../features/notifications/presentation/screens/notification_center_screen.dart';
 import '../../features/profile/presentation/screens/seller_profile_screen.dart';
+import '../../features/reputation/presentation/screens/seller_reputation_screen.dart';
+import '../../features/shipments/presentation/screens/return_shipping_debt_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
@@ -168,6 +170,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/profile',
         builder: (context, state) => const SellerProfileScreen(),
+      ),
+      GoRoute(
+        path: '/reputation',
+        builder: (context, state) => const SellerReputationScreen(),
+      ),
+      GoRoute(
+        path: '/return-shipping-debt',
+        builder: (context, state) => const ReturnShippingDebtScreen(),
       ),
     ],
   );

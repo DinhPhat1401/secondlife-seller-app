@@ -26,6 +26,7 @@ class SlButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final effectiveOnPressed = isLoading ? null : onPressed;
+    final effectiveWidth = width ?? double.infinity;
 
     Widget childWidget;
     if (isLoading) {
@@ -44,15 +45,26 @@ class SlButton extends StatelessWidget {
         children: [
           icon!,
           const SizedBox(width: 8),
-          Text(text),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       );
     } else {
-      childWidget = Text(text);
+      childWidget = Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+      );
     }
 
     final buttonChild = SizedBox(
-      width: width,
+      width: effectiveWidth,
       height: height,
       child: () {
         switch (type) {

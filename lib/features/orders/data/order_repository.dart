@@ -60,4 +60,95 @@ class OrderRepository {
     );
     return response.data ?? {};
   }
+
+  Future<PageResponse<SellerInspectionOrderModel>> getSellerInspectionOrders({
+    int page = 0,
+    int size = 20,
+  }) async {
+    final response = await client.get<Map<String, dynamic>>(
+      ApiEndpoints.inspectionMySellerOrders,
+      queryParameters: {'page': page, 'size': size},
+    );
+    final payload = response.data?['data'] ?? response.data ?? {};
+    return PageResponse.fromJson(
+      payload as Map<String, dynamic>,
+      (json) => SellerInspectionOrderModel.fromJson(json),
+    );
+  }
+
+  Future<SellerInspectionOrderModel> getInspectionOrderDetail(String orderId) async {
+    final response = await client.get<Map<String, dynamic>>(
+      ApiEndpoints.inspectionOrder(orderId),
+    );
+    final payload = response.data?['data'] ?? response.data!;
+    return SellerInspectionOrderModel.fromJson(payload as Map<String, dynamic>);
+  }
+
+  Future<SellerInspectionOrderModel> respondInspectionRequest(
+    String orderId, {
+    required String action,
+    bool? sellerConsentZin,
+    String? rejectionReason,
+    String? counterFeePayer,
+    String? counterOrderType,
+  }) async {
+    final body = <String, dynamic>{
+      'action': action,
+      if (sellerConsentZin != null) 'sellerConsentZin': sellerConsentZin,
+      if (rejectionReason != null && rejectionReason.isNotEmpty) 'rejectionReason': rejectionReason,
+      if (counterFeePayer != null) 'counterFeePayer': counterFeePayer,
+      if (counterOrderType != null) 'counterOrderType': counterOrderType,
+    };
+    final response = await client.post<Map<String, dynamic>>(
+      ApiEndpoints.inspectionRespond(orderId),
+      data: body,
+    );
+    final payload = response.data?['data'] ?? response.data!;
+    return SellerInspectionOrderModel.fromJson(payload as Map<String, dynamic>);
+  }
+
+  Future<SellerInspectionOrderModel> payInspectionFee(String orderId) async {
+    final response = await client.post<Map<String, dynamic>>(
+      ApiEndpoints.inspectionPayFee(orderId),
+    );
+    final payload = response.data?['data'] ?? response.data!;
+    return SellerInspectionOrderModel.fromJson(payload as Map<String, dynamic>);
+  }
+
+  Future<Map<String, dynamic>> getOrCreateHomeCheckInCode(String orderId) async {
+    final response = await client.post<Map<String, dynamic>>(
+      ApiEndpoints.inspectionCheckInCode(orderId),
+    );
+    final payload = response.data?['data'] ?? response.data ?? {};
+    return payload as Map<String, dynamic>;
+  }
+
+  Future<SellerInspectionOrderModel> submitInspectionAppeal(
+    String orderId, {
+    required String reason,
+    List<String>? evidenceUrls,
+    List<String>? contestedItemIds,
+    String? note,
+  }) async {
+    final body = <String, dynamic>{
+      'reason': reason,
+      if (evidenceUrls != null && evidenceUrls.isNotEmpty) 'evidenceUrls': evidenceUrls,
+      if (contestedItemIds != null && contestedItemIds.isNotEmpty) 'contestedItemIds': contestedItemIds,
+      if (note != null && note.isNotEmpty) 'note': note,
+    };
+    final response = await client.post<Map<String, dynamic>>(
+      ApiEndpoints.inspectionAppeal(orderId),
+      data: body,
+    );
+    final payload = response.data?['data'] ?? response.data!;
+    return SellerInspectionOrderModel.fromJson(payload as Map<String, dynamic>);
+  }
+
+  Future<SellerInspectionOrderModel> acceptFailedInspection(String orderId) async {
+    final response = await client.post<Map<String, dynamic>>(
+      ApiEndpoints.inspectionAcceptFailed(orderId),
+    );
+    final payload = response.data?['data'] ?? response.data!;
+    return SellerInspectionOrderModel.fromJson(payload as Map<String, dynamic>);
+  }
 }

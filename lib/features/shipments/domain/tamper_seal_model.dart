@@ -107,19 +107,19 @@ class TamperSealModel {
 
     return TamperSealModel(
       tamperSealId: json['tamperSealId']?.toString() ?? '',
-      status: json['status']?.toString() ?? json['inspectionStatus']?.toString() ?? 'PASSED',
-      productTitle: json['productTitle']?.toString() ?? 'Thiết bị kiểm định SecondLife',
+      status: json['status']?.toString() ?? json['inspectionStatus']?.toString() ?? '',
+      productTitle: json['productTitle']?.toString() ?? '',
       productImageUrl: json['productImageUrl']?.toString(),
       orderCode: (json['orderCode'] ?? json['orderId'] ?? json['inspectionOrderId'])?.toString(),
-      centerName: center?.toString() ?? 'Trung tâm kiểm định SecondLife',
-      inspectorName: inspector?.toString() ?? 'Kỹ thuật viên kiểm định',
+      centerName: center?.toString() ?? '',
+      inspectorName: inspector?.toString() ?? '',
       inspectionDate: inspDateRaw != null
           ? DateTime.tryParse(inspDateRaw.toString()) ?? DateTime.now()
           : DateTime.now(),
       sealCondition: json['sealCondition']?.toString() ?? json['currentSealStatus']?.toString() ?? 'INTACT',
       notes: (json['notes'] ?? json['note'] ?? json['reportSummary'])?.toString(),
-      conditionGrade: json['conditionGrade']?.toString() ?? 'A',
-      conditionScore: (json['conditionScore'] as num?)?.toInt() ?? 95,
+      conditionGrade: json['conditionGrade']?.toString() ?? '',
+      conditionScore: (json['conditionScore'] as num?)?.toInt() ?? 0,
       scanLogs: logs,
     );
   }

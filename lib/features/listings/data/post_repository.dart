@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:secondlife_app_seller/core/config/app_config.dart';
 import 'package:secondlife_app_seller/core/network/api_client.dart';
@@ -21,18 +23,41 @@ class PostRepository {
     String? model,
   }) async {
     final formData = FormData();
+    Directory? tempDir;
+    try {
+      tempDir = await getTemporaryDirectory();
+    } catch (_) {}
 
-    for (final photo in photos) {
-      final fileName = photo.path.split(Platform.pathSeparator).last;
-      final ext = fileName.split('.').last.toLowerCase();
-      final mimeSubType = (ext == 'png') ? 'png' : ((ext == 'webp') ? 'webp' : 'jpeg');
+    for (int i = 0; i < photos.length; i++) {
+      final photo = photos[i];
+      File uploadFile = photo;
+      try {
+        final cachePath = tempDir != null
+            ? '${tempDir.path}/upload_compressed_${DateTime.now().millisecondsSinceEpoch}_$i.jpg'
+            : '${photo.parent.path}/upload_compressed_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+        final compressed = await FlutterImageCompress.compressAndGetFile(
+          photo.absolute.path,
+          cachePath,
+          format: CompressFormat.jpeg,
+          quality: 85,
+          minWidth: 1080,
+          minHeight: 1080,
+          keepExif: false,
+        );
+        if (compressed != null && await File(compressed.path).exists()) {
+          uploadFile = File(compressed.path);
+        }
+      } catch (_) {}
+
+      final fileName = 'listing_img_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+
       formData.files.add(
         MapEntry(
           'images',
           await MultipartFile.fromFile(
-            photo.path,
+            uploadFile.path,
             filename: fileName,
-            contentType: DioMediaType('image', mimeSubType),
+            contentType: DioMediaType('image', 'jpeg'),
           ),
         ),
       );
@@ -105,21 +130,33 @@ class PostRepository {
     required String sessionId,
     String? message,
   }) async {
-    final response = await client.post<Map<String, dynamic>>(
-      ApiEndpoints.postFinalizeChat(sessionId),
-      data: message != null ? {'message': message} : {},
-      options: Options(
-        sendTimeout: const Duration(seconds: 30),
-        receiveTimeout: AppConfig.aiTimeout,
-      ),
-    );
+    try {
+      final response = await client.post<Map<String, dynamic>>(
+        ApiEndpoints.postFinalizeChat(sessionId),
+        data: message != null ? {'message': message} : {},
+        options: Options(
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: AppConfig.aiTimeout,
+        ),
+      );
 
-    final data = response.data;
-    if (data != null) {
-      final model = PostFinalizeResponseModel.fromJson(data);
-      if (model.description.isNotEmpty) {
-        return model;
+      final data = response.data;
+      if (data != null) {
+        final model = PostFinalizeResponseModel.fromJson(data);
+        if (model.description.isNotEmpty) {
+          return model;
+        }
       }
+    } on DioException catch (dioErr) {
+      final status = dioErr.response?.statusCode;
+      final bodyStr = dioErr.response?.data?.toString() ?? '';
+      if (status == 409 || bodyStr.toLowerCase().contains('already completed')) {
+        try {
+          final regenText = await regenerateChat(sessionId: sessionId, message: message);
+          return PostFinalizeResponseModel(description: regenText);
+        } catch (_) {}
+      }
+      rethrow;
     }
     throw AppException(message: 'Không thể tổng hợp bài mô tả từ trợ lý AI');
   }
@@ -166,6 +203,24 @@ class PostRepository {
     throw AppException(message: 'Không thể gợi ý tiêu đề từ máy chủ');
   }
 
+  Future<Map<String, dynamic>> acceptDescription({
+    required String postId,
+    String? description,
+  }) async {
+    final response = await client.post<Map<String, dynamic>>(
+      ApiEndpoints.postAcceptDescription(postId),
+      data: description != null && description.isNotEmpty ? {'description': description} : {},
+      options: Options(
+        sendTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+      ),
+    );
+    if (response.data == null) {
+      throw AppException(message: 'Xác nhận mô tả sản phẩm thất bại');
+    }
+    return (response.data!['data'] ?? response.data!) as Map<String, dynamic>;
+  }
+
   Future<AiPriceEstimationModel> estimatePrice({
     required String postId,
   }) async {
@@ -183,6 +238,40 @@ class PostRepository {
     }
     final payload = response.data!['data'] ?? response.data!;
     return AiPriceEstimationModel.fromJson(payload as Map<String, dynamic>);
+  }
+
+  /// GET /api/v1/posts/{id}/ai-price-estimation/history
+  Future<List<AiPriceEstimationModel>> getAiPriceEstimationHistory(String postId) async {
+    try {
+      final response = await client.get<Map<String, dynamic>>(
+        ApiEndpoints.postAiPriceEstimationHistory(postId),
+      );
+      if (response.data == null) return [];
+      final payload = response.data!['data'] ?? response.data!;
+      List list = [];
+      if (payload is List) {
+        list = payload;
+      } else if (payload is Map && payload['content'] is List) {
+        list = payload['content'] as List;
+      }
+      return list.map((e) => AiPriceEstimationModel.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// GET /api/v1/posts/my-posts/{id}/item
+  Future<Map<String, dynamic>?> getMyPostItemSpecs(String postId) async {
+    try {
+      final response = await client.get<Map<String, dynamic>>(
+        ApiEndpoints.myPostItem(postId),
+      );
+      if (response.data == null) return null;
+      final payload = response.data!['data'] ?? response.data!;
+      return payload as Map<String, dynamic>?;
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<void> updateDraft({

@@ -239,7 +239,7 @@ class SellerListingItemModel {
     if (imageUrls.isNotEmpty && imageUrls.first.isNotEmpty) {
       return imageUrls.first;
     }
-    return 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?w=500&q=80';
+    return '';
   }
 
   factory SellerListingItemModel.fromJson(Map<String, dynamic> json) {
@@ -252,7 +252,7 @@ class SellerListingItemModel {
 
     return SellerListingItemModel(
       id: json['id']?.toString() ?? '',
-      title: json['title'] ?? 'Thiết bị gia dụng',
+      title: json['title']?.toString() ?? '',
       description: json['description'] ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       itemCondition: ApplianceCondition.fromCode(json['itemCondition']?.toString()),

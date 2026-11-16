@@ -8,8 +8,8 @@ import 'package:secondlife_app_seller/features/credits/presentation/credit_provi
 import 'package:secondlife_app_seller/shared/widgets/sl_button.dart';
 import 'package:secondlife_app_seller/features/listings/presentation/create_listing_providers.dart';
 
-class Step6ReviewSubmit extends ConsumerWidget {
-  const Step6ReviewSubmit({super.key});
+class Step5ReviewSubmit extends ConsumerWidget {
+  const Step5ReviewSubmit({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,7 +27,7 @@ class Step6ReviewSubmit extends ConsumerWidget {
             children: [
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.successLight,
                   shape: BoxShape.circle,
                 ),
@@ -41,7 +41,7 @@ class Step6ReviewSubmit extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Bài đăng "${state.title}" đã được duyệt tự động và sẵn sàng đón nhận người mua.',
+                'Bài đăng "${state.title}" đã được nộp duyệt tự động và sẵn sàng đón nhận người mua.',
                 style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
@@ -140,7 +140,7 @@ class Step6ReviewSubmit extends ConsumerWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Thương hiệu: ${state.brand.isNotEmpty ? state.brand : "Chưa rõ"} • Model: ${state.model.isNotEmpty ? state.model : "Chưa rõ"}',
+                  'Thương hiệu: ${state.brand.isNotEmpty ? state.brand : "Chưa rõ"} • Model: ${state.model.isNotEmpty ? state.model : "Chưa rõ"}${state.purchaseYear > 0 ? " • Mua năm: ${state.purchaseYear}" : ""}',
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                 ),
                 const Divider(height: 24),
@@ -165,10 +165,10 @@ class Step6ReviewSubmit extends ConsumerWidget {
                       ),
                 const Divider(height: 24),
 
-                const Text('Thông số vận chuyển kiện hàng:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text('Thông số kiện hàng vận chuyển Lalamove:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                 const SizedBox(height: 6),
                 Text(
-                  'Trọng lượng: ${(state.shippingPackage.weightGrams / 1000).toStringAsFixed(2)} kg (${state.shippingPackage.weightGrams}g)\nKích thước: ${state.shippingPackage.lengthCm} x ${state.shippingPackage.widthCm} x ${state.shippingPackage.heightCm} cm',
+                  'Khối lượng: ${(state.shippingPackage.weightGrams / 1000).toStringAsFixed(2)} kg (${state.shippingPackage.weightGrams}g)\nKích thước (D x R x C): ${state.shippingPackage.lengthCm} x ${state.shippingPackage.widthCm} x ${state.shippingPackage.heightCm} cm',
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.4),
                 ),
               ],
@@ -235,16 +235,59 @@ class Step6ReviewSubmit extends ConsumerWidget {
                 ? () async {
                     final success = await ref.read(createListingNotifierProvider.notifier).submitPost();
                     if (!success && context.mounted) {
-                      final err = ref.read(createListingNotifierProvider).errorMessage;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(err ?? 'Lỗi khi đăng bài'), backgroundColor: AppColors.error),
-                      );
+                      final err = ref.read(createListingNotifierProvider).errorMessage ?? 'Lỗi khi đăng bài';
+                      final lower = err.toLowerCase();
+                      if (lower.contains('insufficient_credit') || lower.contains('không đủ lượt') || lower.contains('hết lượt')) {
+                        showDialog(
+                          context: context,
+                          builder: (dialogCtx) => AlertDialog(
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            title: const Row(
+                              children: [
+                                Icon(Icons.stars_rounded, color: AppColors.error, size: 28),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text('Không đủ credit đăng bài', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            content: const Text(
+                              'Số dư lượt Đăng Bài của bạn không đủ để xuất bản bài đăng này. Vui lòng nạp thêm lượt đăng bài.',
+                              style: TextStyle(fontSize: 13),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(dialogCtx),
+                                child: const Text('Để sau', style: TextStyle(color: AppColors.textSecondary)),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(dialogCtx);
+                                  context.push('/credits/buy');
+                                },
+                                child: const Text('Nạp Lượt Đăng Bài', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(err), backgroundColor: AppColors.error),
+                        );
+                      }
                     }
                   }
-                : null,
+                : () {
+                    context.push('/credits/buy');
+                  },
           ),
         ],
       ),
     );
   }
 }
+

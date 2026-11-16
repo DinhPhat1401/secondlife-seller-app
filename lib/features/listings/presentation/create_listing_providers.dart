@@ -25,11 +25,13 @@ class CreateListingState {
   final String brand;
   final String model;
   final int purchaseYear;
+  final String purchaseTimeNote;
   final ApplianceCondition condition;
   final String title;
   final AiPriceEstimationModel? priceEstimation;
   final double userPriceVnd;
   final ShippingPackageModel shippingPackage;
+  final bool descriptionAccepted;
   final bool isSubmitted;
 
   const CreateListingState({
@@ -47,11 +49,13 @@ class CreateListingState {
     this.brand = '',
     this.model = '',
     this.purchaseYear = 2024,
+    this.purchaseTimeNote = '',
     this.condition = ApplianceCondition.usedGood,
     this.title = '',
     this.priceEstimation,
     this.userPriceVnd = 0.0,
     this.shippingPackage = const ShippingPackageModel(),
+    this.descriptionAccepted = false,
     this.isSubmitted = false,
   });
 
@@ -70,11 +74,13 @@ class CreateListingState {
     String? brand,
     String? model,
     int? purchaseYear,
+    String? purchaseTimeNote,
     ApplianceCondition? condition,
     String? title,
     AiPriceEstimationModel? priceEstimation,
     double? userPriceVnd,
     ShippingPackageModel? shippingPackage,
+    bool? descriptionAccepted,
     bool? isSubmitted,
   }) {
     return CreateListingState(
@@ -92,14 +98,21 @@ class CreateListingState {
       brand: brand ?? this.brand,
       model: model ?? this.model,
       purchaseYear: purchaseYear ?? this.purchaseYear,
+      purchaseTimeNote: purchaseTimeNote ?? this.purchaseTimeNote,
       condition: condition ?? this.condition,
       title: title ?? this.title,
       priceEstimation: priceEstimation ?? this.priceEstimation,
       userPriceVnd: userPriceVnd ?? this.userPriceVnd,
       shippingPackage: shippingPackage ?? this.shippingPackage,
+      descriptionAccepted: descriptionAccepted ?? this.descriptionAccepted,
       isSubmitted: isSubmitted ?? this.isSubmitted,
     );
   }
+
+  bool get isLengthLessThanWidth =>
+      shippingPackage.lengthCm > 0 &&
+      shippingPackage.widthCm > 0 &&
+      shippingPackage.lengthCm < shippingPackage.widthCm;
 }
 
 class CreateListingNotifier extends Notifier<CreateListingState> {
@@ -111,8 +124,77 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
   PostRepository get _repo => ref.read(postRepositoryProvider);
 
   void goToStep(int step) {
-    if (step >= 0 && step <= 5) {
+    if (step >= 0 && step <= 4) {
       state = state.copyWith(step: step);
+    }
+  }
+
+  Future<bool> saveDraft() async {
+    if (state.postId == null) return false;
+    try {
+      final draftData = {
+        if (state.title.isNotEmpty) 'title': state.title,
+        if (state.description.isNotEmpty) 'description': state.description,
+        if (state.brand.isNotEmpty) 'brand': state.brand,
+        if (state.model.isNotEmpty) 'model': state.model,
+        'conditionGrade': state.condition.code,
+        'shippingWeight': state.shippingPackage.weightGrams,
+        'shippingLength': state.shippingPackage.lengthCm,
+        'shippingWidth': state.shippingPackage.widthCm,
+        'shippingHeight': state.shippingPackage.heightCm,
+      };
+      await _repo.updateDraft(postId: state.postId!, data: draftData);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  // Save Step 2 (Description + Package) and advance to Step 3 (Accept Description)
+  Future<bool> saveAndProceedToAccept() async {
+    if (state.description.trim().isEmpty) {
+      state = state.copyWith(errorMessage: 'Vui lòng hoàn tất hoặc nhập nội dung mô tả sản phẩm');
+      return false;
+    }
+    if (state.shippingPackage.weightGrams <= 0) {
+      state = state.copyWith(errorMessage: 'Vui lòng nhập trọng lượng kiện hàng (≥ 1g)');
+      return false;
+    }
+    if (state.isLengthLessThanWidth) {
+      state = state.copyWith(errorMessage: 'Chiều dài phải lớn hơn hoặc bằng chiều rộng (Dài ≥ Rộng)');
+      return false;
+    }
+
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await saveDraft();
+      state = state.copyWith(isLoading: false, step: 2);
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
+    }
+  }
+
+  // Step 3: Accept Description snapshot (POST /accept-description)
+  Future<bool> acceptDescription({bool skipValuation = false}) async {
+    if (state.postId == null) return false;
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    try {
+      await saveDraft();
+      await _repo.acceptDescription(
+        postId: state.postId!,
+        description: state.description,
+      );
+      state = state.copyWith(
+        isLoading: false,
+        descriptionAccepted: true,
+        step: skipValuation ? 4 : 3, // Step 4 (Định giá AI) hoặc Bước 5 (Đăng bài)
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+      return false;
     }
   }
 
@@ -136,6 +218,14 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
       purchaseYear: purchaseYear ?? state.purchaseYear,
       condition: condition ?? state.condition,
     );
+  }
+
+  void setPurchaseTimeNote(String note) {
+    state = state.copyWith(purchaseTimeNote: note);
+  }
+
+  void setPurchaseYear(int year) {
+    state = state.copyWith(purchaseYear: year);
   }
 
   void setTitle(String title) {
@@ -252,11 +342,17 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
       return false;
     }
 
+    final promptBuffer = StringBuffer();
+    if (state.purchaseYear > 0) promptBuffer.write('Năm mua: ${state.purchaseYear}. ');
+    if (state.purchaseTimeNote.isNotEmpty) promptBuffer.write('Thời gian sử dụng: ${state.purchaseTimeNote}. ');
+    if (extraNote != null && extraNote.isNotEmpty) promptBuffer.write('$extraNote. ');
+    promptBuffer.write('Viết bài mô tả súc tích (khoảng 150-200 từ), kết câu trọn vẹn, không viết dở dang.');
+
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final res = await _repo.finalizeChat(
         sessionId: state.aiSessionId!,
-        message: extraNote,
+        message: promptBuffer.toString(),
       );
 
       final finalDesc = res.description.isNotEmpty ? res.description : state.description;
@@ -264,7 +360,6 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
         isLoading: false,
         description: finalDesc,
         title: (res.title != null && res.title!.isNotEmpty) ? res.title! : state.title,
-        step: 2, // Advance to Specs & Title step
       );
       return true;
     } catch (e) {
@@ -273,9 +368,40 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
     }
   }
 
-  // Skip AI Chat and go directly to Specs (Step 3)
+  // Skip AI Chat and populate fallback description in Step 2
   void skipToSpecs() {
-    state = state.copyWith(step: 2, errorMessage: null);
+    String currentDesc = state.description.trim();
+    String currentTitle = state.title.trim();
+
+    if (currentTitle.isEmpty) {
+      final parts = <String>[];
+      if (state.brand.isNotEmpty) parts.add(state.brand);
+      if (state.model.isNotEmpty) parts.add(state.model);
+      parts.add('Sản phẩm gia dụng');
+      currentTitle = parts.join(' ');
+    }
+
+    if (currentDesc.isEmpty) {
+      final lastAiMsg = state.chatMessages.reversed.where((m) => !m.isUser && !m.content.toLowerCase().startsWith('lỗi')).firstOrNull;
+      if (lastAiMsg != null && lastAiMsg.content.trim().isNotEmpty) {
+        currentDesc = lastAiMsg.content.trim();
+      } else {
+        final buffer = StringBuffer();
+        if (state.brand.isNotEmpty) buffer.writeln('- Thương hiệu: ${state.brand}');
+        if (state.model.isNotEmpty) buffer.writeln('- Dòng máy/Model: ${state.model}');
+        buffer.writeln('- Tình trạng ngoại quan: ${state.condition.label}');
+        if (state.purchaseYear > 0) buffer.writeln('- Năm mua: ${state.purchaseYear}');
+        if (state.purchaseTimeNote.isNotEmpty) buffer.writeln('- Thời gian sử dụng: ${state.purchaseTimeNote}');
+        buffer.writeln('- Tình trạng vận hành: Thiết bị hoạt động tốt, đầy đủ chức năng.');
+        currentDesc = buffer.toString().trim();
+      }
+    }
+
+    state = state.copyWith(
+      errorMessage: null,
+      title: currentTitle.isNotEmpty ? currentTitle : state.title,
+      description: currentDesc.isNotEmpty ? currentDesc : state.description,
+    );
   }
 
   // Step 3: Suggest SEO Title with AI
@@ -323,6 +449,10 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
   // Step 6: Submit Post (costs 1 listing credit)
   Future<bool> submitPost() async {
     if (state.postId == null) return false;
+    if (state.isLengthLessThanWidth) {
+      state = state.copyWith(errorMessage: 'Chiều dài phải lớn hơn hoặc bằng chiều rộng (Dài ≥ Rộng).');
+      return false;
+    }
 
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {

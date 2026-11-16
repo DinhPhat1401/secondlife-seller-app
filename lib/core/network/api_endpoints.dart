@@ -40,6 +40,16 @@ class ApiEndpoints {
   static const String topupMyCredit = '/api/v1/topup/my-credit';
   static String topupPurchase(String packageId) => '/api/v1/topup/purchase/$packageId';
 
+  // Seller Reputation
+  static const String sellerReputationMe = '/api/v1/seller/reputation/me';
+  static const String sellerReputationHistory = '/api/v1/seller/reputation/me/history';
+  static String sellerReputationPublic(String sellerId) => '/api/v1/sellers/$sellerId/reputation';
+
+  // Return Shipping Fees & Debt
+  static const String returnShippingFees = '/api/v1/seller/return-shipping-fees';
+  static const String returnShippingFeesDebt = '/api/v1/seller/return-shipping-fees/debt';
+  static String returnShippingFee(String shipmentId) => '/api/v1/shipments/$shipmentId/return-shipping-fee';
+
   // Categories & Items
   static const String categories = '/api/v1/categories';
   static String itemsByCategory(String categoryId) => '/api/v1/items/category/$categoryId';
@@ -53,7 +63,10 @@ class ApiEndpoints {
   static String postFinalizeChat(String sessionId) => '/api/v1/posts/finalize-chat/$sessionId';
   static String postRegenerateChat(String sessionId) => '/api/v1/posts/regenerate-chat/$sessionId';
   static String postSuggestTitle(String postId) => '/api/v1/posts/$postId/suggest-title';
+  static String postAcceptDescription(String postId) => '/api/v1/posts/$postId/accept-description';
   static String postAiPriceEstimation(String postId) => '/api/v1/posts/$postId/ai-price-estimation';
+  static String postAiPriceEstimationHistory(String postId) => '/api/v1/posts/$postId/ai-price-estimation/history';
+  static String myPostItem(String postId) => '/api/v1/posts/my-posts/$postId/item';
   static String postShippingPackage(String postId) => '/api/v1/posts/$postId/shipping-package';
   static String postSubmit(String postId) => '/api/v1/posts/submit/$postId';
   static String postDelete(String postId) => '/api/v1/posts/$postId';
@@ -92,6 +105,7 @@ class ApiEndpoints {
   static String shipmentEvents(String shipmentId) => '/api/v1/shipments/$shipmentId/events';
   static String shipmentSync(String shipmentId) => '/api/v1/shipments/$shipmentId/sync';
   static String shipmentCancel(String shipmentId) => '/api/v1/shipments/$shipmentId/cancel';
+  static String inspectionOrderShipments(String inspectionId) => '/api/v1/inspection-orders/$inspectionId/shipments';
 
   // Inspection & Tamper Seal
   static const String inspectionMySellerOrders = '/api/v1/inspection/my-seller-orders';
@@ -99,6 +113,9 @@ class ApiEndpoints {
   static String inspectionOrder(String orderId) => '/api/v1/inspection/orders/$orderId';
   static String inspectionRespond(String orderId) => '/api/v1/inspection/requests/$orderId/respond';
   static String inspectionPayFee(String orderId) => '/api/v1/inspection/orders/$orderId/pay-fee';
+  static String inspectionCheckInCode(String orderId) => '/api/v1/inspection/orders/$orderId/check-in-code';
+  static String inspectionAppeal(String orderId) => '/api/v1/inspection/orders/$orderId/appeal';
+  static String inspectionAcceptFailed(String orderId) => '/api/v1/inspection/orders/$orderId/accept-failed';
   static String inspectionSchedule(String orderId) => '/api/v1/inspector/orders/$orderId/schedule';
   static String inspectionStart(String orderId) => '/api/v1/inspector/orders/$orderId/start';
   static String inspectionSealLookup(String sealId) => '/api/v1/inspection/seal/$sealId';

@@ -45,7 +45,7 @@ class SellerProfileModel {
 
   String get displayAvatarUrl {
     if (avatarUrl.isNotEmpty) return avatarUrl;
-    return 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80';
+    return '';
   }
 
   factory SellerProfileModel.fromJson(Map<String, dynamic> json) {
@@ -55,7 +55,7 @@ class SellerProfileModel {
     return SellerProfileModel(
       id: json['id']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
-      fullName: json['fullName']?.toString() ?? 'Người bán SecondLife',
+      fullName: json['fullName']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
       avatarUrl: json['avatarUrl']?.toString() ?? '',
       accountStatus: json['accountStatus']?.toString() ?? 'ACTIVE',

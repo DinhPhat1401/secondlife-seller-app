@@ -212,22 +212,26 @@ class _TamperSealLookupSheetState extends State<TamperSealLookupSheet> {
                                 const SizedBox(height: 4),
                                 Row(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primary.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(4),
+                                    if (_sealResult!.conditionScore > 0) ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          _sealResult!.conditionGrade.isNotEmpty
+                                              ? 'Hạng ${_sealResult!.conditionGrade}'
+                                              : 'Chưa xếp hạng',
+                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                        ),
                                       ),
-                                      child: Text(
-                                        'Hạng ${_sealResult!.conditionGrade}',
-                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.primary),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${_sealResult!.conditionScore}/100 điểm',
+                                        style: TextStyle(fontSize: 11, color: Colors.grey.shade700, fontWeight: FontWeight.w600),
                                       ),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${_sealResult!.conditionScore}/100 điểm',
-                                      style: TextStyle(fontSize: 11, color: Colors.grey.shade700, fontWeight: FontWeight.w600),
-                                    ),
+                                    ],
                                   ],
                                 ),
                               ],
@@ -237,13 +241,13 @@ class _TamperSealLookupSheetState extends State<TamperSealLookupSheet> {
                       ),
                       const Divider(height: 20),
                     ] else ...[
-                      _buildInfoRow('Thiết bị:', _sealResult!.productTitle),
+                      _buildInfoRow('Thiết bị:', _sealResult!.productTitle.isNotEmpty ? _sealResult!.productTitle : 'Chưa cập nhật tên thiết bị'),
                     ],
 
                     if (_sealResult!.orderCode != null)
                       _buildInfoRow('Mã đơn:', _sealResult!.orderCode!),
-                    _buildInfoRow('Trung tâm:', _sealResult!.centerName),
-                    _buildInfoRow('Kỹ thuật viên:', _sealResult!.inspectorName),
+                    _buildInfoRow('Trung tâm:', _sealResult!.centerName.isNotEmpty ? _sealResult!.centerName : 'Chưa cập nhật trung tâm'),
+                    _buildInfoRow('Kỹ thuật viên:', _sealResult!.inspectorName.isNotEmpty ? _sealResult!.inspectorName : 'Chưa cập nhật KTV'),
                     _buildInfoRow('Thời gian dán:', dateFormatter.format(_sealResult!.inspectionDate)),
                     if (_sealResult!.notes != null)
                       _buildInfoRow('Ghi chú KTV:', _sealResult!.notes!),

@@ -48,12 +48,12 @@ class NegotiationModel {
     return NegotiationModel(
       id: json['id']?.toString() ?? '',
       postId: json['postId']?.toString() ?? '',
-      postTitle: json['postTitle']?.toString() ?? json['title']?.toString() ?? 'Thiết bị gia dụng',
+      postTitle: json['postTitle']?.toString() ?? json['title']?.toString() ?? '',
       buyerId: json['buyerId']?.toString(),
       buyerName: json['buyerName']?.toString() ??
           json['buyer']?['fullName']?.toString() ??
           json['buyer']?['name']?.toString() ??
-          'Người mua',
+          '',
       sellerId: json['sellerId']?.toString(),
       offeredPrice: (json['offeredPrice'] as num?)?.toDouble() ?? 0.0,
       originalPrice: (json['originalPrice'] ?? json['postPrice'] as num?)?.toDouble(),

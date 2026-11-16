@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:secondlife_app_seller/core/theme/app_colors.dart';
+import 'package:secondlife_app_seller/features/credits/presentation/credit_providers.dart';
 import '../create_listing_providers.dart';
 import 'steps/step1_photos_init.dart';
 import 'steps/step2_ai_chat.dart';
-import 'steps/step3_product_specs.dart';
+import 'steps/step3_accept_description.dart';
 import 'steps/step4_ai_pricing.dart';
-import 'steps/step5_shipping_package.dart';
-import 'steps/step6_review_submit.dart';
+import 'steps/step5_review_submit.dart';
 
 class CreateListingWizardScreen extends ConsumerWidget {
   const CreateListingWizardScreen({super.key});
@@ -51,7 +51,10 @@ class CreateListingWizardScreen extends ConsumerWidget {
         ),
         body: Column(
           children: [
-            if (!state.isSubmitted) _buildStepperHeader(state.step),
+            if (!state.isSubmitted) ...[
+              _buildCreditBar(context, ref),
+              _buildStepperHeader(state.step),
+            ],
             Expanded(child: _buildStepContent(state.step)),
           ],
         ),
@@ -59,13 +62,91 @@ class CreateListingWizardScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildCreditBar(BuildContext context, WidgetRef ref) {
+    final creditState = ref.watch(creditNotifierProvider);
+    final b = creditState.balance;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.primaryLight.withValues(alpha: 0.35),
+        border: const Border(
+          bottom: BorderSide(color: AppColors.border, width: 0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.stars_rounded, size: 16, color: AppColors.primary),
+          const SizedBox(width: 6),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildCreditPill('Đăng bài', b.postCredits, AppColors.primary),
+                  const SizedBox(width: 6),
+                  _buildCreditPill('Định giá', b.valuationCredits, Colors.amber.shade800),
+                  const SizedBox(width: 6),
+                  _buildCreditPill('AI Chat', b.chatCredits, Colors.blue.shade700),
+                ],
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () => ref.read(creditNotifierProvider.notifier).fetchBalance(),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Icon(Icons.sync_rounded, size: 16, color: AppColors.textSecondary),
+            ),
+          ),
+          const SizedBox(width: 4),
+          InkWell(
+            onTap: () => context.push('/credits/buy'),
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text(
+                '+ Nạp lượt',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCreditPill(String label, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('$label: ', style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+          Text(
+            '$count',
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: count > 0 ? color : AppColors.error),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStepperHeader(int currentStep) {
     final stepLabels = [
-      'Ảnh',
-      'AI Chat',
-      'Thông số',
+      'Sản phẩm',
+      'Mô tả & Kiện',
+      'Xác nhận',
       'Định giá',
-      'Đóng gói',
       'Đăng bài',
     ];
 
@@ -147,14 +228,12 @@ class CreateListingWizardScreen extends ConsumerWidget {
       case 1:
         return const Step2AiChat();
       case 2:
-        return const Step3ProductSpecs();
+        return const Step3AcceptDescription();
       case 3:
         return const Step4AiPricing();
       case 4:
-        return const Step5ShippingPackage();
-      case 5:
       default:
-        return const Step6ReviewSubmit();
+        return const Step5ReviewSubmit();
     }
   }
 }

@@ -66,6 +66,13 @@ class CreditNotifier extends Notifier<CreditState> {
 
   CreditRepository get _repo => ref.read(creditRepositoryProvider);
 
+  Future<void> fetchBalance() async {
+    try {
+      final balance = await _repo.getCredits();
+      state = state.copyWith(balance: balance);
+    } catch (_) {}
+  }
+
   Future<void> loadInitialData() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {

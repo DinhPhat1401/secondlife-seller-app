@@ -246,11 +246,46 @@ class _Step4AiPricingState extends ConsumerState<Step4AiPricing> {
               ref.read(createListingNotifierProvider.notifier).setUserPrice(num);
             },
           ),
+          const SizedBox(height: 16),
+
+          // High-value threshold notice (>= 10,000,000 VND)
+          if (state.userPriceVnd >= 10000000)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.cyan.shade50,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.cyan.shade200),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.verified_outlined, size: 20, color: Colors.cyan.shade800),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sản phẩm giá trị cao (từ 10.000.000đ trở lên):',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.cyan.shade900),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          'Bài đăng sẽ tự động chuyển sang quy trình Kiểm định chất lượng của Kỹ thuật viên (PENDING_INSPECTION) trước khi hiển thị công khai trên Sàn. Chưa trừ credit Đăng tin cho tới khi kiểm định đạt chuẩn.',
+                          style: TextStyle(fontSize: 11, color: Colors.cyan.shade900, height: 1.35),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: 24),
 
-          // Next Step Button
+          // Next Step Button (to Step 5)
           SlButton(
-            text: 'Tiếp Tục: Kích Thước Kiện Hàng',
+            text: 'Tiếp Tục: Sang Bước 5 (Xem Lại & Gửi Đăng Bài)',
             icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 20),
             onPressed: () {
               final price = double.tryParse(_priceController.text) ?? 0.0;

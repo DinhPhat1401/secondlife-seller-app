@@ -266,18 +266,25 @@ class _SellerListingsScreenState extends ConsumerState<SellerListingsScreen>
                 // Product Thumbnail
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    item.primaryImageUrl,
-                    width: 86,
-                    height: 86,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      width: 86,
-                      height: 86,
-                      color: const Color(0xFFF3F4F6),
-                      child: const Icon(Icons.broken_image_outlined, color: AppColors.textMuted),
-                    ),
-                  ),
+                  child: item.primaryImageUrl.isNotEmpty
+                      ? Image.network(
+                          item.primaryImageUrl,
+                          width: 86,
+                          height: 86,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, url, error) => Container(
+                            width: 86,
+                            height: 86,
+                            color: const Color(0xFFF3F4F6),
+                            child: const Icon(Icons.inventory_2_outlined, color: AppColors.textMuted),
+                          ),
+                        )
+                      : Container(
+                          width: 86,
+                          height: 86,
+                          color: const Color(0xFFF3F4F6),
+                          child: const Icon(Icons.inventory_2_outlined, color: AppColors.textMuted),
+                        ),
                 ),
                 const SizedBox(width: 12),
                 // Details

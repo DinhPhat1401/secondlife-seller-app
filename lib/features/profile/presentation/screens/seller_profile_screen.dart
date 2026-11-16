@@ -288,6 +288,20 @@ class SellerProfileScreen extends ConsumerWidget {
                         child: Column(
                           children: [
                             _buildSettingsTile(
+                              icon: Icons.military_tech_outlined,
+                              title: 'Điểm Uy Tín & Vi Phạm',
+                              subtitle: 'Xem xếp hạng người bán, cảnh cáo và lịch sử',
+                              onTap: () => context.push('/reputation'),
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _buildSettingsTile(
+                              icon: Icons.assignment_return_outlined,
+                              title: 'Nợ Cước Vận Chuyển Hoàn Hàng',
+                              subtitle: 'Kiện hàng hoàn trả kiểm định & phí vận chuyển',
+                              onTap: () => context.push('/return-shipping-debt'),
+                            ),
+                            const Divider(height: 1, indent: 56),
+                            _buildSettingsTile(
                               icon: Icons.lock_outline,
                               title: 'Đổi Mật Khẩu',
                               subtitle: 'Cập nhật mật khẩu bảo mật định kỳ',
