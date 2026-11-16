@@ -14,7 +14,8 @@ import '../../domain/order_models.dart';
 import '../order_providers.dart';
 
 class SellerOrdersScreen extends ConsumerStatefulWidget {
-  const SellerOrdersScreen({super.key});
+  final int initialMode;
+  const SellerOrdersScreen({super.key, this.initialMode = 0});
 
   @override
   ConsumerState<SellerOrdersScreen> createState() => _SellerOrdersScreenState();
@@ -24,7 +25,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final _currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
-  int _mainModeIndex = 0; // 0: Đơn hàng, 1: Đơn kiểm định
+  late int _mainModeIndex; // 0: Đơn hàng, 1: Đơn kiểm định
 
   final List<({String label, OrderStatus? status})> _tabs = [
     (label: 'Tất cả', status: null),
@@ -38,6 +39,7 @@ class _SellerOrdersScreenState extends ConsumerState<SellerOrdersScreen>
   @override
   void initState() {
     super.initState();
+    _mainModeIndex = widget.initialMode;
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {

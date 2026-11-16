@@ -134,7 +134,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/orders',
-        builder: (context, state) => const SellerOrdersScreen(),
+        builder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final mode = extra?['mode'] as int? ?? 0;
+          return SellerOrdersScreen(initialMode: mode);
+        },
       ),
       GoRoute(
         path: '/shipments/:id/tracking',
