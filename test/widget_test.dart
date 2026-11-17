@@ -87,16 +87,22 @@ void main() {
           creditNotifierProvider.overrideWith(MockCreditNotifier.new),
           orderListNotifierProvider.overrideWith(MockOrderListNotifier.new),
           chatRoomsNotifierProvider.overrideWith(MockChatRoomsNotifier.new),
-          sellerListingsNotifierProvider.overrideWith(MockSellerListingsNotifier.new),
-          sellerWalletNotifierProvider.overrideWith(MockSellerWalletNotifier.new),
-          notificationNotifierProvider.overrideWith(MockNotificationNotifier.new),
+          sellerListingsNotifierProvider.overrideWith(
+            MockSellerListingsNotifier.new,
+          ),
+          sellerWalletNotifierProvider.overrideWith(
+            MockSellerWalletNotifier.new,
+          ),
+          notificationNotifierProvider.overrideWith(
+            MockNotificationNotifier.new,
+          ),
           profileNotifierProvider.overrideWith(MockProfileNotifier.new),
         ],
         child: const SecondLifeSellerApp(),
       ),
     );
 
-    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1500));
     expect(find.byType(SecondLifeSellerApp), findsOneWidget);
   });
 }

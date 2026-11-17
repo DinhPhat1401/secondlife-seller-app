@@ -81,7 +81,7 @@ void main() {
       expect(item.listingCreditCharged, true);
     });
 
-    test('SellerListingItemModel fallback image when imageUrls empty', () {
+    test('SellerListingItemModel exposes empty image when imageUrls empty', () {
       final item = SellerListingItemModel(
         id: 'post-102',
         title: 'Bếp điện từ đôi Kangaroo',
@@ -89,8 +89,7 @@ void main() {
         imageUrls: const [],
       );
 
-      expect(item.primaryImageUrl, isNotEmpty);
-      expect(item.primaryImageUrl.contains('unsplash'), true);
+      expect(item.primaryImageUrl, isEmpty);
     });
   });
 
@@ -162,10 +161,16 @@ void main() {
   group('Sprint 5 - Notifications Models Tests', () {
     test('Maps NotificationType correctly', () {
       expect(NotificationType.fromCode('ORDER'), NotificationType.order);
-      expect(NotificationType.fromCode('NEGOTIATION'), NotificationType.negotiation);
+      expect(
+        NotificationType.fromCode('NEGOTIATION'),
+        NotificationType.negotiation,
+      );
       expect(NotificationType.fromCode('CHAT'), NotificationType.chat);
       expect(NotificationType.fromCode('WALLET'), NotificationType.wallet);
-      expect(NotificationType.fromCode('INSPECTION'), NotificationType.inspection);
+      expect(
+        NotificationType.fromCode('INSPECTION'),
+        NotificationType.inspection,
+      );
       expect(NotificationType.fromCode('SYSTEM'), NotificationType.system);
     });
 
@@ -225,15 +230,17 @@ void main() {
   });
 
   group('Sprint 5 - Widget Smoke Tests', () {
-    testWidgets('Renders SellerListingsScreen without crashing', (tester) async {
+    testWidgets('Renders SellerListingsScreen without crashing', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            sellerListingsNotifierProvider.overrideWith(MockSellerListingsNotifier.new),
+            sellerListingsNotifierProvider.overrideWith(
+              MockSellerListingsNotifier.new,
+            ),
           ],
-          child: const MaterialApp(
-            home: SellerListingsScreen(),
-          ),
+          child: const MaterialApp(home: SellerListingsScreen()),
         ),
       );
 
@@ -246,29 +253,31 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            sellerWalletNotifierProvider.overrideWith(MockSellerWalletNotifier.new),
+            sellerWalletNotifierProvider.overrideWith(
+              MockSellerWalletNotifier.new,
+            ),
           ],
-          child: const MaterialApp(
-            home: SellerWalletScreen(),
-          ),
+          child: const MaterialApp(home: SellerWalletScreen()),
         ),
       );
 
       await tester.pump();
       expect(find.text('Ví Doanh Thu Người Bán'), findsOneWidget);
       expect(find.text('Số dư khả dụng'), findsOneWidget);
-      expect(find.text('Yêu Cầu Rút Tiền Về Ngân Hàng'), findsOneWidget);
+      expect(find.text('Rút Tiền Về NH'), findsOneWidget);
     });
 
-    testWidgets('Renders NotificationCenterScreen without crashing', (tester) async {
+    testWidgets('Renders NotificationCenterScreen without crashing', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            notificationNotifierProvider.overrideWith(MockNotificationNotifier.new),
+            notificationNotifierProvider.overrideWith(
+              MockNotificationNotifier.new,
+            ),
           ],
-          child: const MaterialApp(
-            home: NotificationCenterScreen(),
-          ),
+          child: const MaterialApp(home: NotificationCenterScreen()),
         ),
       );
 

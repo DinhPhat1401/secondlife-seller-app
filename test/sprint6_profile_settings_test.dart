@@ -60,16 +60,19 @@ void main() {
       expect(profile.displayAvatarUrl, 'https://example.com/avatar.jpg');
     });
 
-    test('SellerProfileModel fullAddress handles missing address fields gracefully', () {
-      const profile = SellerProfileModel(
-        id: 'usr-empty',
-        email: 'empty@test.com',
-        fullName: 'Người bán mới',
-      );
+    test(
+      'SellerProfileModel fullAddress handles missing address fields gracefully',
+      () {
+        const profile = SellerProfileModel(
+          id: 'usr-empty',
+          email: 'empty@test.com',
+          fullName: 'Người bán mới',
+        );
 
-      expect(profile.fullAddress, 'Chưa thiết lập địa chỉ kho');
-      expect(profile.displayAvatarUrl, isNotEmpty);
-    });
+        expect(profile.fullAddress, 'Chưa thiết lập địa chỉ kho');
+        expect(profile.displayAvatarUrl, isEmpty);
+      },
+    );
 
     test('UpdateProfileRequestModel converts to JSON properly', () {
       const req = UpdateProfileRequestModel(
@@ -96,9 +99,7 @@ void main() {
           overrides: [
             profileNotifierProvider.overrideWith(MockProfileNotifier.new),
           ],
-          child: const MaterialApp(
-            home: SellerProfileScreen(),
-          ),
+          child: const MaterialApp(home: SellerProfileScreen()),
         ),
       );
 

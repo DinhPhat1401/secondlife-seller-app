@@ -7,10 +7,7 @@ class AuthRepository {
   final ApiClient client;
   final SecureStorageService storage;
 
-  AuthRepository({
-    required this.client,
-    required this.storage,
-  });
+  AuthRepository({required this.client, required this.storage});
 
   Future<UserModel> login({
     required String email,
@@ -18,10 +15,7 @@ class AuthRepository {
   }) async {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.login,
-      data: {
-        'email': email.trim().toLowerCase(),
-        'password': password,
-      },
+      data: {'email': email.trim().toLowerCase(), 'password': password},
     );
 
     final data = response.data;
@@ -97,9 +91,30 @@ class AuthRepository {
   }) async {
     await client.post(
       ApiEndpoints.confirmEmailVerification,
+      data: {'email': email.trim().toLowerCase(), 'otp': otp.trim()},
+    );
+  }
+
+  Future<void> requestPasswordReset(String email) async {
+    await client.post(
+      ApiEndpoints.forgotPassword,
+      data: {'email': email.trim().toLowerCase()},
+    );
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    await client.post(
+      ApiEndpoints.resetPassword,
       data: {
         'email': email.trim().toLowerCase(),
         'otp': otp.trim(),
+        'newPassword': newPassword,
+        'confirmPassword': confirmPassword,
       },
     );
   }
@@ -108,7 +123,9 @@ class AuthRepository {
     final token = await storage.getAccessToken();
     if (token == null || token.isEmpty) return null;
 
-    final response = await client.get<Map<String, dynamic>>(ApiEndpoints.userMe);
+    final response = await client.get<Map<String, dynamic>>(
+      ApiEndpoints.userMe,
+    );
     if (response.data != null) {
       final user = UserModel.fromJson(response.data!);
       await storage.saveUser(user.toJson());

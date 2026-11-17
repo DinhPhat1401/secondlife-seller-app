@@ -17,6 +17,7 @@ class CreateListingState {
   final String? postId;
   final String? aiSessionId;
   final List<File> photos;
+  final List<String> existingPhotoUrls;
   final List<String> suggestedQuestions;
   final List<AiChatMessageModel> chatMessages;
   final String description;
@@ -41,6 +42,7 @@ class CreateListingState {
     this.postId,
     this.aiSessionId,
     this.photos = const [],
+    this.existingPhotoUrls = const [],
     this.suggestedQuestions = const [],
     this.chatMessages = const [],
     this.description = '',
@@ -66,6 +68,7 @@ class CreateListingState {
     String? postId,
     String? aiSessionId,
     List<File>? photos,
+    List<String>? existingPhotoUrls,
     List<String>? suggestedQuestions,
     List<AiChatMessageModel>? chatMessages,
     String? description,
@@ -90,6 +93,7 @@ class CreateListingState {
       postId: postId ?? this.postId,
       aiSessionId: aiSessionId ?? this.aiSessionId,
       photos: photos ?? this.photos,
+      existingPhotoUrls: existingPhotoUrls ?? this.existingPhotoUrls,
       suggestedQuestions: suggestedQuestions ?? this.suggestedQuestions,
       chatMessages: chatMessages ?? this.chatMessages,
       description: description ?? this.description,
@@ -123,6 +127,28 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
 
   PostRepository get _repo => ref.read(postRepositoryProvider);
 
+  void prepareExistingDraftForSubmission({
+    required String postId,
+    required String title,
+    required String description,
+    required String itemCondition,
+    required double price,
+    required ShippingPackageModel shippingPackage,
+    required List<String> imageUrls,
+  }) {
+    state = CreateListingState(
+      step: 4,
+      postId: postId,
+      title: title,
+      description: description,
+      condition: ApplianceCondition.fromCode(itemCondition),
+      userPriceVnd: price,
+      shippingPackage: shippingPackage,
+      existingPhotoUrls: imageUrls,
+      descriptionAccepted: true,
+    );
+  }
+
   void goToStep(int step) {
     if (step >= 0 && step <= 4) {
       state = state.copyWith(step: step);
@@ -153,15 +179,22 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
   // Save Step 2 (Description + Package) and advance to Step 3 (Accept Description)
   Future<bool> saveAndProceedToAccept() async {
     if (state.description.trim().isEmpty) {
-      state = state.copyWith(errorMessage: 'Vui lòng hoàn tất hoặc nhập nội dung mô tả sản phẩm');
+      state = state.copyWith(
+        errorMessage: 'Vui lòng hoàn tất hoặc nhập nội dung mô tả sản phẩm',
+      );
       return false;
     }
     if (state.shippingPackage.weightGrams <= 0) {
-      state = state.copyWith(errorMessage: 'Vui lòng nhập trọng lượng kiện hàng (≥ 1g)');
+      state = state.copyWith(
+        errorMessage: 'Vui lòng nhập trọng lượng kiện hàng (≥ 1g)',
+      );
       return false;
     }
     if (state.isLengthLessThanWidth) {
-      state = state.copyWith(errorMessage: 'Chiều dài phải lớn hơn hoặc bằng chiều rộng (Dài ≥ Rộng)');
+      state = state.copyWith(
+        errorMessage:
+            'Chiều dài phải lớn hơn hoặc bằng chiều rộng (Dài ≥ Rộng)',
+      );
       return false;
     }
 
@@ -189,7 +222,9 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
       state = state.copyWith(
         isLoading: false,
         descriptionAccepted: true,
-        step: skipValuation ? 4 : 3, // Step 4 (Định giá AI) hoặc Bước 5 (Đăng bài)
+        step: skipValuation
+            ? 4
+            : 3, // Step 4 (Định giá AI) hoặc Bước 5 (Đăng bài)
       );
       return true;
     } catch (e) {
@@ -247,11 +282,15 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
   // Step 1: Upload photos & Init Post with AI Vision
   Future<bool> initPost() async {
     if (state.photos.length < 3) {
-      state = state.copyWith(errorMessage: 'Vui lòng chọn ít nhất 3 ảnh thiết bị');
+      state = state.copyWith(
+        errorMessage: 'Vui lòng chọn ít nhất 3 ảnh thiết bị',
+      );
       return false;
     }
     if (state.categoryId == null || state.categoryId!.isEmpty) {
-      state = state.copyWith(errorMessage: 'Vui lòng chọn Danh Mục Thiết Bị trước khi phân tích AI');
+      state = state.copyWith(
+        errorMessage: 'Vui lòng chọn Danh Mục Thiết Bị trước khi phân tích AI',
+      );
       return false;
     }
 
@@ -343,10 +382,15 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
     }
 
     final promptBuffer = StringBuffer();
-    if (state.purchaseYear > 0) promptBuffer.write('Năm mua: ${state.purchaseYear}. ');
-    if (state.purchaseTimeNote.isNotEmpty) promptBuffer.write('Thời gian sử dụng: ${state.purchaseTimeNote}. ');
-    if (extraNote != null && extraNote.isNotEmpty) promptBuffer.write('$extraNote. ');
-    promptBuffer.write('Viết bài mô tả súc tích (khoảng 150-200 từ), kết câu trọn vẹn, không viết dở dang.');
+    if (state.purchaseYear > 0)
+      promptBuffer.write('Năm mua: ${state.purchaseYear}. ');
+    if (state.purchaseTimeNote.isNotEmpty)
+      promptBuffer.write('Thời gian sử dụng: ${state.purchaseTimeNote}. ');
+    if (extraNote != null && extraNote.isNotEmpty)
+      promptBuffer.write('$extraNote. ');
+    promptBuffer.write(
+      'Viết bài mô tả súc tích (khoảng 150-200 từ), kết câu trọn vẹn, không viết dở dang.',
+    );
 
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
@@ -355,11 +399,15 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
         message: promptBuffer.toString(),
       );
 
-      final finalDesc = res.description.isNotEmpty ? res.description : state.description;
+      final finalDesc = res.description.isNotEmpty
+          ? res.description
+          : state.description;
       state = state.copyWith(
         isLoading: false,
         description: finalDesc,
-        title: (res.title != null && res.title!.isNotEmpty) ? res.title! : state.title,
+        title: (res.title != null && res.title!.isNotEmpty)
+            ? res.title!
+            : state.title,
       );
       return true;
     } catch (e) {
@@ -382,17 +430,25 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
     }
 
     if (currentDesc.isEmpty) {
-      final lastAiMsg = state.chatMessages.reversed.where((m) => !m.isUser && !m.content.toLowerCase().startsWith('lỗi')).firstOrNull;
+      final lastAiMsg = state.chatMessages.reversed
+          .where((m) => !m.isUser && !m.content.toLowerCase().startsWith('lỗi'))
+          .firstOrNull;
       if (lastAiMsg != null && lastAiMsg.content.trim().isNotEmpty) {
         currentDesc = lastAiMsg.content.trim();
       } else {
         final buffer = StringBuffer();
-        if (state.brand.isNotEmpty) buffer.writeln('- Thương hiệu: ${state.brand}');
-        if (state.model.isNotEmpty) buffer.writeln('- Dòng máy/Model: ${state.model}');
+        if (state.brand.isNotEmpty)
+          buffer.writeln('- Thương hiệu: ${state.brand}');
+        if (state.model.isNotEmpty)
+          buffer.writeln('- Dòng máy/Model: ${state.model}');
         buffer.writeln('- Tình trạng ngoại quan: ${state.condition.label}');
-        if (state.purchaseYear > 0) buffer.writeln('- Năm mua: ${state.purchaseYear}');
-        if (state.purchaseTimeNote.isNotEmpty) buffer.writeln('- Thời gian sử dụng: ${state.purchaseTimeNote}');
-        buffer.writeln('- Tình trạng vận hành: Thiết bị hoạt động tốt, đầy đủ chức năng.');
+        if (state.purchaseYear > 0)
+          buffer.writeln('- Năm mua: ${state.purchaseYear}');
+        if (state.purchaseTimeNote.isNotEmpty)
+          buffer.writeln('- Thời gian sử dụng: ${state.purchaseTimeNote}');
+        buffer.writeln(
+          '- Tình trạng vận hành: Thiết bị hoạt động tốt, đầy đủ chức năng.',
+        );
         currentDesc = buffer.toString().trim();
       }
     }
@@ -434,7 +490,9 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
       state = state.copyWith(
         isLoading: false,
         priceEstimation: est,
-        userPriceVnd: est.estimatedPrice > 0 ? est.estimatedPrice : state.userPriceVnd,
+        userPriceVnd: est.estimatedPrice > 0
+            ? est.estimatedPrice
+            : state.userPriceVnd,
       );
 
       // Refresh credits balance
@@ -450,7 +508,10 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
   Future<bool> submitPost() async {
     if (state.postId == null) return false;
     if (state.isLengthLessThanWidth) {
-      state = state.copyWith(errorMessage: 'Chiều dài phải lớn hơn hoặc bằng chiều rộng (Dài ≥ Rộng).');
+      state = state.copyWith(
+        errorMessage:
+            'Chiều dài phải lớn hơn hoặc bằng chiều rộng (Dài ≥ Rộng).',
+      );
       return false;
     }
 
@@ -493,4 +554,5 @@ class CreateListingNotifier extends Notifier<CreateListingState> {
 
 final createListingNotifierProvider =
     NotifierProvider<CreateListingNotifier, CreateListingState>(
-        CreateListingNotifier.new);
+      CreateListingNotifier.new,
+    );

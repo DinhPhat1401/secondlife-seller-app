@@ -51,16 +51,10 @@ class AuthNotifier extends Notifier<AuthState> {
           errorMessage: null,
         );
       } else {
-        state = state.copyWith(
-          status: AuthStatus.unauthenticated,
-          user: null,
-        );
+        state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
       }
     } catch (_) {
-      state = state.copyWith(
-        status: AuthStatus.unauthenticated,
-        user: null,
-      );
+      state = state.copyWith(status: AuthStatus.unauthenticated, user: null);
     }
   }
 
@@ -127,6 +121,21 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  Future<void> requestPasswordReset(String email) =>
+      _repository.requestPasswordReset(email);
+
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) => _repository.resetPassword(
+    email: email,
+    otp: otp,
+    newPassword: newPassword,
+    confirmPassword: confirmPassword,
+  );
+
   Future<void> logout() async {
     await _repository.logout();
     state = const AuthState(status: AuthStatus.unauthenticated);
@@ -140,4 +149,6 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 }
 
-final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(AuthNotifier.new);
+final authNotifierProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
+);

@@ -4,8 +4,10 @@ class ApiEndpoints {
   static const String register = '/api/auth/register';
   static const String refresh = '/api/auth/refresh';
   static const String logout = '/api/auth/logout';
-  static const String sendEmailVerification = '/api/auth/email-verification/send';
-  static const String confirmEmailVerification = '/api/auth/email-verification/confirm';
+  static const String sendEmailVerification =
+      '/api/auth/email-verification/send';
+  static const String confirmEmailVerification =
+      '/api/auth/email-verification/confirm';
   static const String forgotPassword = '/api/auth/forgot-password';
   static const String resetPassword = '/api/auth/reset-password';
   static const String changePassword = '/api/auth/change-password';
@@ -16,14 +18,18 @@ class ApiEndpoints {
 
   // Seller Onboarding
   static const String sellerOnboardingMe = '/api/v1/seller-onboarding/me';
-  static const String sellerOnboardingSendCode = '/api/v1/seller-onboarding/email/send-code';
-  static const String sellerOnboardingVerify = '/api/v1/seller-onboarding/email/verify';
+  static const String sellerOnboardingSendCode =
+      '/api/v1/seller-onboarding/email/send-code';
+  static const String sellerOnboardingVerify =
+      '/api/v1/seller-onboarding/email/verify';
 
   // Seller Verification & eKYC
   static const String sellerVerifications = '/api/v1/seller-verifications';
   static const String sellerVerificationsMe = '/api/v1/seller-verifications/me';
-  static const String sellerVerificationsHistory = '/api/v1/seller-verifications/me/history';
-  static String sellerVerificationResubmit(String id) => '/api/v1/seller-verifications/$id/resubmit';
+  static const String sellerVerificationsHistory =
+      '/api/v1/seller-verifications/me/history';
+  static String sellerVerificationResubmit(String id) =>
+      '/api/v1/seller-verifications/$id/resubmit';
   static const String vnptEkycVerify = '/api/v1/ekyc/verify';
 
   // Media
@@ -38,36 +44,52 @@ class ApiEndpoints {
   static const String sellerCreditLedger = '/api/v1/seller/credit-ledger';
   static const String topupPackages = '/api/v1/topup/packages';
   static const String topupMyCredit = '/api/v1/topup/my-credit';
-  static String topupPurchase(String packageId) => '/api/v1/topup/purchase/$packageId';
+  static String topupPurchase(String packageId) =>
+      '/api/v1/topup/purchase/$packageId';
 
   // Seller Reputation
   static const String sellerReputationMe = '/api/v1/seller/reputation/me';
-  static const String sellerReputationHistory = '/api/v1/seller/reputation/me/history';
-  static String sellerReputationPublic(String sellerId) => '/api/v1/sellers/$sellerId/reputation';
+  static const String sellerReputationHistory =
+      '/api/v1/seller/reputation/me/history';
+  static String sellerReputationPublic(String sellerId) =>
+      '/api/v1/sellers/$sellerId/reputation';
 
   // Return Shipping Fees & Debt
-  static const String returnShippingFees = '/api/v1/seller/return-shipping-fees';
-  static const String returnShippingFeesDebt = '/api/v1/seller/return-shipping-fees/debt';
-  static String returnShippingFee(String shipmentId) => '/api/v1/shipments/$shipmentId/return-shipping-fee';
+  static const String returnShippingFees =
+      '/api/v1/seller/return-shipping-fees';
+  static const String returnShippingFeesDebt =
+      '/api/v1/seller/return-shipping-fees/debt';
+  static String returnShippingFee(String shipmentId) =>
+      '/api/v1/shipments/$shipmentId/return-shipping-fee';
 
   // Categories & Items
   static const String categories = '/api/v1/categories';
-  static String itemsByCategory(String categoryId) => '/api/v1/items/category/$categoryId';
+  static String itemsByCategory(String categoryId) =>
+      '/api/v1/items/category/$categoryId';
 
   // Posts & Listings
   static const String posts = '/api/v1/posts';
   static const String postsInit = '/api/v1/posts/init';
   static const String myPosts = '/api/v1/posts/my-posts';
+  static String myPostDetail(String postId) => '/api/v1/posts/my-posts/$postId';
   static String postDetail(String postId) => '/api/v1/posts/$postId';
   static String postDraft(String postId) => '/api/v1/posts/$postId/draft';
-  static String postFinalizeChat(String sessionId) => '/api/v1/posts/finalize-chat/$sessionId';
-  static String postRegenerateChat(String sessionId) => '/api/v1/posts/regenerate-chat/$sessionId';
-  static String postSuggestTitle(String postId) => '/api/v1/posts/$postId/suggest-title';
-  static String postAcceptDescription(String postId) => '/api/v1/posts/$postId/accept-description';
-  static String postAiPriceEstimation(String postId) => '/api/v1/posts/$postId/ai-price-estimation';
-  static String postAiPriceEstimationHistory(String postId) => '/api/v1/posts/$postId/ai-price-estimation/history';
-  static String myPostItem(String postId) => '/api/v1/posts/my-posts/$postId/item';
-  static String postShippingPackage(String postId) => '/api/v1/posts/$postId/shipping-package';
+  static String postFinalizeChat(String sessionId) =>
+      '/api/v1/posts/finalize-chat/$sessionId';
+  static String postRegenerateChat(String sessionId) =>
+      '/api/v1/posts/regenerate-chat/$sessionId';
+  static String postSuggestTitle(String postId) =>
+      '/api/v1/posts/$postId/suggest-title';
+  static String postAcceptDescription(String postId) =>
+      '/api/v1/posts/$postId/accept-description';
+  static String postAiPriceEstimation(String postId) =>
+      '/api/v1/posts/$postId/ai-price-estimation';
+  static String postAiPriceEstimationHistory(String postId) =>
+      '/api/v1/posts/$postId/ai-price-estimation/history';
+  static String myPostItem(String postId) =>
+      '/api/v1/posts/my-posts/$postId/item';
+  static String postShippingPackage(String postId) =>
+      '/api/v1/posts/$postId/shipping-package';
   static String postSubmit(String postId) => '/api/v1/posts/submit/$postId';
   static String postDelete(String postId) => '/api/v1/posts/$postId';
   static String postBoost(String postId) => '/api/v1/posts/$postId/boost';
@@ -78,14 +100,19 @@ class ApiEndpoints {
   // Negotiations (Bargain)
   static const String negotiationsSeller = '/api/v1/negotiations/seller';
   static const String negotiationsBuyer = '/api/v1/negotiations/buyer';
-  static String negotiationAccept(String id) => '/api/v1/negotiations/$id/accept';
-  static String negotiationReject(String id) => '/api/v1/negotiations/$id/reject';
-  static String negotiationCancel(String id) => '/api/v1/negotiations/$id/cancel';
+  static String negotiationAccept(String id) =>
+      '/api/v1/negotiations/$id/accept';
+  static String negotiationReject(String id) =>
+      '/api/v1/negotiations/$id/reject';
+  static String negotiationCancel(String id) =>
+      '/api/v1/negotiations/$id/cancel';
 
   // Chat
   static const String chatRooms = '/api/v1/chats';
-  static String chatRoomMessages(String roomId) => '/api/v1/chats/$roomId/messages';
-  static String chatGetOrCreateRoom(String postId) => '/api/v1/chats/rooms?postId=$postId';
+  static String chatRoomMessages(String roomId) =>
+      '/api/v1/chats/$roomId/messages';
+  static String chatGetOrCreateRoom(String postId) =>
+      '/api/v1/chats/rooms?postId=$postId';
 
   // Shipping & Addresses
   static const String reverseGeocode = '/api/v1/shipping/reverse-geocode';
@@ -96,29 +123,48 @@ class ApiEndpoints {
   // Orders
   static const String ordersSeller = '/api/v1/orders/seller';
   static const String ordersBuyer = '/api/v1/orders/buyer';
-  static String orderShipments(String orderId) => '/api/v1/orders/$orderId/shipments';
-  static String orderCommission(String orderId) => '/api/v1/orders/$orderId/commission';
-  static String orderSettlement(String orderId) => '/api/v1/orders/$orderId/settlement';
+  static String orderShipments(String orderId) =>
+      '/api/v1/orders/$orderId/shipments';
+  static String orderCommission(String orderId) =>
+      '/api/v1/orders/$orderId/commission';
+  static String orderSettlement(String orderId) =>
+      '/api/v1/orders/$orderId/settlement';
 
   // Shipments & Tracking
-  static String shipmentTracking(String shipmentId) => '/api/v1/shipments/$shipmentId/tracking';
-  static String shipmentEvents(String shipmentId) => '/api/v1/shipments/$shipmentId/events';
-  static String shipmentSync(String shipmentId) => '/api/v1/shipments/$shipmentId/sync';
-  static String shipmentCancel(String shipmentId) => '/api/v1/shipments/$shipmentId/cancel';
-  static String inspectionOrderShipments(String inspectionId) => '/api/v1/inspection-orders/$inspectionId/shipments';
+  static String shipmentTracking(String shipmentId) =>
+      '/api/v1/shipments/$shipmentId/tracking';
+  static String shipmentEvents(String shipmentId) =>
+      '/api/v1/shipments/$shipmentId/events';
+  static String shipmentSync(String shipmentId) =>
+      '/api/v1/shipments/$shipmentId/sync';
+  static String shipmentCancel(String shipmentId) =>
+      '/api/v1/shipments/$shipmentId/cancel';
+  static String inspectionOrderShipments(String inspectionId) =>
+      '/api/v1/inspection-orders/$inspectionId/shipments';
 
   // Inspection & Tamper Seal
-  static const String inspectionMySellerOrders = '/api/v1/inspection/my-seller-orders';
-  static const String inspectionMyBuyerOrders = '/api/v1/inspection/my-buyer-orders';
-  static String inspectionOrder(String orderId) => '/api/v1/inspection/orders/$orderId';
-  static String inspectionRespond(String orderId) => '/api/v1/inspection/requests/$orderId/respond';
-  static String inspectionPayFee(String orderId) => '/api/v1/inspection/orders/$orderId/pay-fee';
-  static String inspectionCheckInCode(String orderId) => '/api/v1/inspection/orders/$orderId/check-in-code';
-  static String inspectionAppeal(String orderId) => '/api/v1/inspection/orders/$orderId/appeal';
-  static String inspectionAcceptFailed(String orderId) => '/api/v1/inspection/orders/$orderId/accept-failed';
-  static String inspectionSchedule(String orderId) => '/api/v1/inspector/orders/$orderId/schedule';
-  static String inspectionStart(String orderId) => '/api/v1/inspector/orders/$orderId/start';
-  static String inspectionSealLookup(String sealId) => '/api/v1/inspection/seal/$sealId';
+  static const String inspectionMySellerOrders =
+      '/api/v1/inspection/my-seller-orders';
+  static const String inspectionMyBuyerOrders =
+      '/api/v1/inspection/my-buyer-orders';
+  static String inspectionOrder(String orderId) =>
+      '/api/v1/inspection/orders/$orderId';
+  static String inspectionRespond(String orderId) =>
+      '/api/v1/inspection/requests/$orderId/respond';
+  static String inspectionPayFee(String orderId) =>
+      '/api/v1/inspection/orders/$orderId/pay-fee';
+  static String inspectionCheckInCode(String orderId) =>
+      '/api/v1/inspection/orders/$orderId/check-in-code';
+  static String inspectionAppeal(String orderId) =>
+      '/api/v1/inspection/orders/$orderId/appeal';
+  static String inspectionAcceptFailed(String orderId) =>
+      '/api/v1/inspection/orders/$orderId/accept-failed';
+  static String inspectionSchedule(String orderId) =>
+      '/api/v1/inspector/orders/$orderId/schedule';
+  static String inspectionStart(String orderId) =>
+      '/api/v1/inspector/orders/$orderId/start';
+  static String inspectionSealLookup(String sealId) =>
+      '/api/v1/inspection/seal/$sealId';
 
   // Wallets & Payout
   static const String walletMe = '/api/v1/wallets/me';
@@ -128,12 +174,19 @@ class ApiEndpoints {
 
   // Notifications
   static const String notifications = '/api/v1/notifications';
-  static const String notificationsUnreadCount = '/api/v1/notifications/unread-count';
-  static String notificationMarkRead(String id) => '/api/v1/notifications/$id/read';
+  static const String notificationsUnreadCount =
+      '/api/v1/notifications/unread-count';
+  static String notificationMarkRead(String id) =>
+      '/api/v1/notifications/$id/read';
   static const String notificationReadAll = '/api/v1/notifications/read-all';
   static String notificationDelete(String id) => '/api/v1/notifications/$id';
-  static const String notificationClearRead = '/api/v1/notifications/clear-read';
+  static const String notificationClearRead =
+      '/api/v1/notifications/clear-read';
   static const String notificationClearAll = '/api/v1/notifications/clear-all';
   static const String notificationDevices = '/api/v1/notifications/devices';
-  static String notificationDeviceDelete(String token) => '/api/v1/notifications/devices/$token';
+  static String notificationDeviceDelete(String token) =>
+      '/api/v1/notifications/devices/$token';
+
+  // User reports submitted by the authenticated seller.
+  static const String userReports = '/api/v1/reports/me';
 }

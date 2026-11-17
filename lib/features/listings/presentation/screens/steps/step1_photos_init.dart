@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../../../../core/responsive/responsive.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -61,13 +62,15 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
   }
 
   void _syncInputs() {
-    ref.read(createListingNotifierProvider.notifier).updateBasicSpecs(
-      brand: _brandController.text.trim(),
-      model: _modelController.text.trim(),
-    );
-    ref.read(createListingNotifierProvider.notifier).setPurchaseTimeNote(
-      _purchaseTimeNoteController.text.trim(),
-    );
+    ref
+        .read(createListingNotifierProvider.notifier)
+        .updateBasicSpecs(
+          brand: _brandController.text.trim(),
+          model: _modelController.text.trim(),
+        );
+    ref
+        .read(createListingNotifierProvider.notifier)
+        .setPurchaseTimeNote(_purchaseTimeNoteController.text.trim());
   }
 
   final List<String> _photoSlotLabels = [
@@ -91,7 +94,8 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
         File finalFile = File(picked.path);
         try {
           final tempDir = await getTemporaryDirectory();
-          final targetPath = '${tempDir.path}/listing_photo_${DateTime.now().millisecondsSinceEpoch}_$index.jpg';
+          final targetPath =
+              '${tempDir.path}/listing_photo_${DateTime.now().millisecondsSinceEpoch}_$index.jpg';
           final compressed = await FlutterImageCompress.compressAndGetFile(
             picked.path,
             targetPath,
@@ -110,23 +114,35 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
         if (bytes > 10 * 1024 * 1024) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Dung lượng ảnh vượt quá 10MB. Vui lòng chọn ảnh nhỏ hơn.'), backgroundColor: AppColors.error),
+              const SnackBar(
+                content: Text(
+                  'Dung lượng ảnh vượt quá 10MB. Vui lòng chọn ảnh nhỏ hơn.',
+                ),
+                backgroundColor: AppColors.error,
+              ),
             );
           }
           return;
         }
-        final currentPhotos = List<File>.from(ref.read(createListingNotifierProvider).photos);
+        final currentPhotos = List<File>.from(
+          ref.read(createListingNotifierProvider).photos,
+        );
         if (index < currentPhotos.length) {
           currentPhotos[index] = finalFile;
         } else {
           currentPhotos.add(finalFile);
         }
-        ref.read(createListingNotifierProvider.notifier).setPhotos(currentPhotos);
+        ref
+            .read(createListingNotifierProvider.notifier)
+            .setPhotos(currentPhotos);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi chọn ảnh: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Lỗi chọn ảnh: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -145,7 +161,10 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.camera_alt_outlined, color: AppColors.primary),
+                leading: const Icon(
+                  Icons.camera_alt_outlined,
+                  color: AppColors.primary,
+                ),
                 title: const Text('Chụp ảnh thực tế bằng Camera'),
                 onTap: () {
                   Navigator.pop(context);
@@ -153,7 +172,10 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library_outlined, color: AppColors.primary),
+                leading: const Icon(
+                  Icons.photo_library_outlined,
+                  color: AppColors.primary,
+                ),
                 title: const Text('Chọn ảnh từ Thư viện'),
                 onTap: () {
                   Navigator.pop(context);
@@ -168,7 +190,9 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
   }
 
   void _removePhoto(int index) {
-    final currentPhotos = List<File>.from(ref.read(createListingNotifierProvider).photos);
+    final currentPhotos = List<File>.from(
+      ref.read(createListingNotifierProvider).photos,
+    );
     if (index < currentPhotos.length) {
       currentPhotos.removeAt(index);
       ref.read(createListingNotifierProvider.notifier).setPhotos(currentPhotos);
@@ -177,14 +201,20 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
 
   void _handleInitPostError(String errMsg) {
     final lower = errMsg.toLowerCase();
-    if (lower.contains('không khớp thương hiệu') || lower.contains('detected_brand')) {
-      final match = RegExp(r'\[DETECTED_BRAND:\s*([^\]]+)\]', caseSensitive: false).firstMatch(errMsg);
+    if (lower.contains('không khớp thương hiệu') ||
+        lower.contains('detected_brand')) {
+      final match = RegExp(
+        r'\[DETECTED_BRAND:\s*([^\]]+)\]',
+        caseSensitive: false,
+      ).firstMatch(errMsg);
       final detectedBrand = match?.group(1)?.trim() ?? 'Thương hiệu nhận diện';
       _showBrandMismatchDialog(detectedBrand, errMsg);
       return;
     }
 
-    if (lower.contains('insufficient_credit') || lower.contains('hết lượt') || lower.contains('không đủ lượt')) {
+    if (lower.contains('insufficient_credit') ||
+        lower.contains('hết lượt') ||
+        lower.contains('không đủ lượt')) {
       _showNoCreditsDialog();
       return;
     }
@@ -207,7 +237,11 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 28),
+            Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.warning,
+              size: 28,
+            ),
             SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -231,17 +265,29 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               decoration: BoxDecoration(
                 color: AppColors.primaryLight.withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.4),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const Text('AI phát hiện: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                      const Text(
+                        'AI phát hiện: ',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       Text(
                         detectedBrand,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ],
                   ),
@@ -249,10 +295,20 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        const Text('Bạn đã chọn: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                        const Text(
+                          'Bạn đã chọn: ',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         Text(
                           currentBrand,
-                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.error),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.error,
+                          ),
                         ),
                       ],
                     ),
@@ -265,23 +321,39 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx),
-            child: const Text('Chọn lại ảnh khác', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              'Chọn lại ảnh khác',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () async {
               Navigator.pop(dialogCtx);
-              ref.read(createListingNotifierProvider.notifier).updateBasicSpecs(brand: detectedBrand);
-              final ok = await ref.read(createListingNotifierProvider.notifier).initPost();
+              ref
+                  .read(createListingNotifierProvider.notifier)
+                  .updateBasicSpecs(brand: detectedBrand);
+              final ok = await ref
+                  .read(createListingNotifierProvider.notifier)
+                  .initPost();
               if (!ok && mounted) {
-                final err = ref.read(createListingNotifierProvider).errorMessage ?? '';
+                final err =
+                    ref.read(createListingNotifierProvider).errorMessage ?? '';
                 _handleInitPostError(err);
               }
             },
-            child: Text('Đổi thành $detectedBrand & Tiếp tục', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(
+              'Đổi thành $detectedBrand & Tiếp tục',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -315,18 +387,29 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               Navigator.pop(dialogCtx);
               ref.read(createListingNotifierProvider.notifier).skipToSpecs();
             },
-            child: const Text('Bỏ qua AI, tự nhập', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text(
+              'Bỏ qua AI, tự nhập',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () {
               Navigator.pop(dialogCtx);
               context.push('/credits/buy');
             },
-            child: const Text('Nạp Thêm Lượt', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: const Text(
+              'Nạp Thêm Lượt',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -337,11 +420,15 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
     final state = ref.read(createListingNotifierProvider);
     final creditState = ref.read(creditNotifierProvider);
     final categories = ref.read(categoriesProvider).value ?? [];
-    final categoryName = categories.firstWhere(
-      (c) => c.id == state.categoryId,
-      orElse: () => const CategoryModel(id: '', name: 'Thiết bị gia dụng'),
-    ).name;
-    final brand = state.brand.trim().isNotEmpty ? state.brand.trim() : 'Chưa điền thương hiệu';
+    final categoryName = categories
+        .firstWhere(
+          (c) => c.id == state.categoryId,
+          orElse: () => const CategoryModel(id: '', name: 'Thiết bị gia dụng'),
+        )
+        .name;
+    final brand = state.brand.trim().isNotEmpty
+        ? state.brand.trim()
+        : 'Chưa điền thương hiệu';
 
     showDialog(
       context: context,
@@ -370,7 +457,11 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                   ),
                 ],
               ),
-              child: const Icon(Icons.auto_awesome, color: Colors.white, size: 28),
+              child: const Icon(
+                Icons.auto_awesome,
+                color: Colors.white,
+                size: 28,
+              ),
             ),
             const SizedBox(height: 12),
             Container(
@@ -382,7 +473,11 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               ),
               child: Text(
                 'Chi Phí: 1 Credit AI Chat',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber.shade900,
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -407,9 +502,16 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                   const Divider(height: 12),
                   _buildSummaryRow('Thương hiệu:', brand, isHighlight: true),
                   const Divider(height: 12),
-                  _buildSummaryRow('Số lượng ảnh:', '${state.photos.length} ảnh'),
+                  _buildSummaryRow(
+                    'Số lượng ảnh:',
+                    '${state.photos.length} ảnh',
+                  ),
                   const Divider(height: 12),
-                  _buildSummaryRow('Số dư AI Chat:', '${creditState.balance.chatCredits} lượt', isSuccess: true),
+                  _buildSummaryRow(
+                    'Số dư AI Chat:',
+                    '${creditState.balance.chatCredits} lượt',
+                    isSuccess: true,
+                  ),
                 ],
               ),
             ),
@@ -426,12 +528,20 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.warning_amber_rounded, size: 16, color: Colors.amber.shade800),
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 16,
+                    color: Colors.amber.shade800,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Lưu ý: Quá trình quét ảnh tiêu tốn tài nguyên AI thực tế. Nếu thông tin bạn nhập (loại máy hoặc thương hiệu) không khớp với ảnh, 1 credit vẫn sẽ bị trừ. Vui lòng đảm bảo thông tin trên là chính xác!',
-                      style: TextStyle(fontSize: 11, color: Colors.amber.shade900, height: 1.3),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.amber.shade900,
+                        height: 1.3,
+                      ),
                     ),
                   ),
                 ],
@@ -450,12 +560,20 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.lock_outline, size: 16, color: Colors.red.shade700),
+                  Icon(
+                    Icons.lock_outline,
+                    size: 16,
+                    color: Colors.red.shade700,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Không thể quay lại: Sau khi xác nhận quét AI và chuyển sang Bước 2, bạn sẽ không thể quay lại Bước 1 để thay đổi danh mục hoặc chọn lại ảnh sản phẩm.',
-                      style: TextStyle(fontSize: 11, color: Colors.red.shade900, height: 1.3),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.red.shade900,
+                        height: 1.3,
+                      ),
                     ),
                   ),
                 ],
@@ -471,9 +589,14 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                   onPressed: () => Navigator.pop(dialogCtx),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 11),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  child: const Text('Kiểm Tra Lại', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                  child: const Text(
+                    'Kiểm Tra Lại',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -481,18 +604,37 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     Navigator.pop(dialogCtx);
-                    final ok = await ref.read(createListingNotifierProvider.notifier).initPost();
+                    final ok = await ref
+                        .read(createListingNotifierProvider.notifier)
+                        .initPost();
                     if (!ok && mounted) {
-                      final err = ref.read(createListingNotifierProvider).errorMessage ?? '';
+                      final err =
+                          ref
+                              .read(createListingNotifierProvider)
+                              .errorMessage ??
+                          '';
                       _handleInitPostError(err);
                     }
                   },
-                  icon: const Icon(Icons.auto_awesome, size: 14, color: Colors.white),
-                  label: const Text('Xác Nhận & Quét (-1)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                  icon: const Icon(
+                    Icons.auto_awesome,
+                    size: 14,
+                    color: Colors.white,
+                  ),
+                  label: const Text(
+                    'Xác Nhận & Quét (-1)',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 11),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
               ),
@@ -503,11 +645,19 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isHighlight = false, bool isSuccess = false}) {
+  Widget _buildSummaryRow(
+    String label,
+    String value, {
+    bool isHighlight = false,
+    bool isSuccess = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+        ),
         Text(
           value,
           style: TextStyle(
@@ -516,8 +666,8 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
             color: isHighlight
                 ? AppColors.primary
                 : isSuccess
-                    ? Colors.green.shade700
-                    : AppColors.textPrimary,
+                ? Colors.green.shade700
+                : AppColors.textPrimary,
           ),
         ),
       ],
@@ -543,12 +693,18 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
             decoration: BoxDecoration(
               color: AppColors.primaryLight.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+              ),
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.auto_awesome, color: AppColors.primary, size: 22),
+                const Icon(
+                  Icons.auto_awesome,
+                  color: AppColors.primary,
+                  size: 22,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
@@ -556,12 +712,20 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                     children: const [
                       Text(
                         'AI Vision Nhận Diện Thiết Bị',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.primary),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.primary,
+                        ),
                       ),
                       SizedBox(height: 2),
                       Text(
                         'Chọn danh mục và chụp đủ tối thiểu 3 ảnh rõ nét (đặc biệt là tem thông số) để trợ lý AI tự động nhận diện model, năm sản xuất và gợi ý mô tả chi tiết.',
-                        style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.35),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textSecondary,
+                          height: 1.35,
+                        ),
                       ),
                     ],
                   ),
@@ -578,7 +742,9 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: (state.errorMessage != null && (state.categoryId == null || state.categoryId!.isEmpty))
+                color:
+                    (state.errorMessage != null &&
+                        (state.categoryId == null || state.categoryId!.isEmpty))
                     ? AppColors.error
                     : AppColors.border,
               ),
@@ -595,11 +761,19 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               children: [
                 Row(
                   children: const [
-                    Icon(Icons.category_outlined, size: 18, color: AppColors.primary),
+                    Icon(
+                      Icons.category_outlined,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Danh Mục Thiết Bị Gia Dụng *',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -608,7 +782,10 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                   data: (categories) => DropdownButtonFormField<String>(
                     isExpanded: true,
                     decoration: InputDecoration(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: const BorderSide(color: AppColors.border),
@@ -619,26 +796,38 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                          width: 1.5,
+                        ),
                       ),
                       filled: true,
                       fillColor: Colors.grey.shade50,
                       hintText: 'Chọn danh mục thiết bị',
-                      hintStyle: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                      hintStyle: const TextStyle(
+                        fontSize: 13,
+                        color: AppColors.textMuted,
+                      ),
                     ),
-                    initialValue: categories.any((c) => c.id == state.categoryId) ? state.categoryId : null,
+                    initialValue:
+                        categories.any((c) => c.id == state.categoryId)
+                        ? state.categoryId
+                        : null,
                     items: categories.map((cat) {
                       return DropdownMenuItem<String>(
                         value: cat.id,
-                        child: Text(cat.name, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+                        child: Text(
+                          cat.name,
+                          style: const TextStyle(fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       );
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) {
-                        ref.read(createListingNotifierProvider.notifier).updateBasicSpecs(
-                              categoryId: val,
-                              itemId: '',
-                            );
+                        ref
+                            .read(createListingNotifierProvider.notifier)
+                            .updateBasicSpecs(categoryId: val, itemId: '');
                       }
                     },
                   ),
@@ -656,14 +845,21 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                   const SizedBox(height: 12),
                   const Text(
                     'Loại Thiết Bị Cụ Thể (Tùy chọn)',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: AppColors.textSecondary),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   itemsAsync.when(
                     data: (items) => DropdownButtonFormField<String>(
                       isExpanded: true,
                       decoration: InputDecoration(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: const BorderSide(color: AppColors.border),
@@ -674,23 +870,37 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          borderSide: const BorderSide(
+                            color: AppColors.primary,
+                            width: 1.5,
+                          ),
                         ),
                         filled: true,
                         fillColor: Colors.grey.shade50,
                         hintText: 'Chọn loại thiết bị (Nồi cơm, Lò vi sóng...)',
-                        hintStyle: const TextStyle(fontSize: 13, color: AppColors.textMuted),
+                        hintStyle: const TextStyle(
+                          fontSize: 13,
+                          color: AppColors.textMuted,
+                        ),
                       ),
-                      initialValue: items.any((i) => i.id == state.itemId) ? state.itemId : null,
+                      initialValue: items.any((i) => i.id == state.itemId)
+                          ? state.itemId
+                          : null,
                       items: items.map((item) {
                         return DropdownMenuItem<String>(
                           value: item.id,
-                          child: Text(item.name, style: const TextStyle(fontSize: 13), overflow: TextOverflow.ellipsis),
+                          child: Text(
+                            item.name,
+                            style: const TextStyle(fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         );
                       }).toList(),
                       onChanged: (val) {
                         if (val != null) {
-                          ref.read(createListingNotifierProvider.notifier).updateBasicSpecs(itemId: val);
+                          ref
+                              .read(createListingNotifierProvider.notifier)
+                              .updateBasicSpecs(itemId: val);
                         }
                       },
                     ),
@@ -719,11 +929,19 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               children: [
                 Row(
                   children: const [
-                    Icon(Icons.branding_watermark_outlined, size: 18, color: AppColors.primary),
+                    Icon(
+                      Icons.branding_watermark_outlined,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Thương Hiệu & Dòng Máy *',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -735,7 +953,9 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                         label: 'Thương hiệu *',
                         hint: 'VD: Panasonic, Sunhouse',
                         controller: _brandController,
-                        onChanged: (v) => ref.read(createListingNotifierProvider.notifier).updateBasicSpecs(brand: v),
+                        onChanged: (v) => ref
+                            .read(createListingNotifierProvider.notifier)
+                            .updateBasicSpecs(brand: v),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -744,7 +964,9 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                         label: 'Mã Model',
                         hint: 'VD: SHD7723',
                         controller: _modelController,
-                        onChanged: (v) => ref.read(createListingNotifierProvider.notifier).updateBasicSpecs(model: v),
+                        onChanged: (v) => ref
+                            .read(createListingNotifierProvider.notifier)
+                            .updateBasicSpecs(model: v),
                       ),
                     ),
                   ],
@@ -760,7 +982,9 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                       side: const BorderSide(color: AppColors.border),
                       onPressed: () {
                         _brandController.text = b;
-                        ref.read(createListingNotifierProvider.notifier).updateBasicSpecs(brand: b);
+                        ref
+                            .read(createListingNotifierProvider.notifier)
+                            .updateBasicSpecs(brand: b);
                       },
                     );
                   }).toList(),
@@ -783,11 +1007,19 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               children: [
                 Row(
                   children: const [
-                    Icon(Icons.verified_outlined, size: 18, color: AppColors.primary),
+                    Icon(
+                      Icons.verified_outlined,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Tình Trạng Thiết Bị Thực Tế *',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -798,24 +1030,34 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                     return InkWell(
                       borderRadius: BorderRadius.circular(12),
                       onTap: () {
-                        ref.read(createListingNotifierProvider.notifier).updateBasicSpecs(condition: cond);
+                        ref
+                            .read(createListingNotifierProvider.notifier)
+                            .updateBasicSpecs(condition: cond);
                       },
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary.withValues(alpha: 0.06) : AppColors.surface,
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: 0.06)
+                              : AppColors.surface,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? AppColors.primary : AppColors.border,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.border,
                             width: isSelected ? 1.5 : 1.0,
                           ),
                         ),
                         child: Row(
                           children: [
                             Icon(
-                              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                              color: isSelected ? AppColors.primary : AppColors.textMuted,
+                              isSelected
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_off,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textMuted,
                               size: 18,
                             ),
                             const SizedBox(width: 10),
@@ -823,9 +1065,21 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(cond.label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                                  Text(
+                                    cond.label,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                   const SizedBox(height: 1),
-                                  Text(cond.description, style: const TextStyle(fontSize: 10, color: AppColors.textSecondary)),
+                                  Text(
+                                    cond.description,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -853,11 +1107,19 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               children: [
                 Row(
                   children: const [
-                    Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.primary),
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: 18,
+                      color: AppColors.primary,
+                    ),
                     SizedBox(width: 8),
                     Text(
                       'Thời Điểm Mua & Thời Gian Sử Dụng',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ],
                 ),
@@ -867,21 +1129,34 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                     Expanded(
                       flex: 4,
                       child: DropdownButtonFormField<int>(
-                        value: state.purchaseYear > 0 ? state.purchaseYear : DateTime.now().year,
+                        value: state.purchaseYear > 0
+                            ? state.purchaseYear
+                            : DateTime.now().year,
                         isDense: true,
                         isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Năm mua',
                           border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 10,
+                          ),
                         ),
                         items: List.generate(11, (i) {
                           final yr = DateTime.now().year - i;
-                          return DropdownMenuItem(value: yr, child: Text('Năm $yr', style: const TextStyle(fontSize: 12)));
+                          return DropdownMenuItem(
+                            value: yr,
+                            child: Text(
+                              'Năm $yr',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          );
                         }),
                         onChanged: (val) {
                           if (val != null) {
-                            ref.read(createListingNotifierProvider.notifier).setPurchaseYear(val);
+                            ref
+                                .read(createListingNotifierProvider.notifier)
+                                .setPurchaseYear(val);
                           }
                         },
                       ),
@@ -896,11 +1171,16 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                           labelText: 'Chi tiết thời gian dùng',
                           hintText: 'VD: Dùng khoảng 6 tháng...',
                           border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 10,
+                          ),
                           isDense: true,
                         ),
                         onChanged: (val) {
-                          ref.read(createListingNotifierProvider.notifier).setPurchaseTimeNote(val);
+                          ref
+                              .read(createListingNotifierProvider.notifier)
+                              .setPurchaseTimeNote(val);
                         },
                       ),
                     ),
@@ -910,24 +1190,30 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                 Wrap(
                   spacing: 6,
                   runSpacing: 4,
-                  children: [
-                    'Dưới 6 tháng',
-                    'Khoảng 6 - 12 tháng',
-                    'Khoảng 1 - 2 năm',
-                    'Trên 2 năm',
-                    'Mua mới đầu năm nay',
-                    'Mua cuối năm ngoái',
-                  ].map((chip) {
-                    return ActionChip(
-                      label: Text(chip, style: const TextStyle(fontSize: 10)),
-                      backgroundColor: AppColors.surface,
-                      side: const BorderSide(color: AppColors.border),
-                      onPressed: () {
-                        _purchaseTimeNoteController.text = chip;
-                        ref.read(createListingNotifierProvider.notifier).setPurchaseTimeNote(chip);
-                      },
-                    );
-                  }).toList(),
+                  children:
+                      [
+                        'Dưới 6 tháng',
+                        'Khoảng 6 - 12 tháng',
+                        'Khoảng 1 - 2 năm',
+                        'Trên 2 năm',
+                        'Mua mới đầu năm nay',
+                        'Mua cuối năm ngoái',
+                      ].map((chip) {
+                        return ActionChip(
+                          label: Text(
+                            chip,
+                            style: const TextStyle(fontSize: 10),
+                          ),
+                          backgroundColor: AppColors.surface,
+                          side: const BorderSide(color: AppColors.border),
+                          onPressed: () {
+                            _purchaseTimeNoteController.text = chip;
+                            ref
+                                .read(createListingNotifierProvider.notifier)
+                                .setPurchaseTimeNote(chip);
+                          },
+                        );
+                      }).toList(),
                 ),
               ],
             ),
@@ -940,14 +1226,20 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
             children: [
               const Text(
                 'Hình Ảnh Thiết Bị Thực Tế *',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: AppColors.textPrimary,
+                ),
               ),
               Text(
                 '${photos.length}/6 ảnh (Tối thiểu 3)',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: photos.length >= 3 ? AppColors.success : AppColors.textSecondary,
+                  color: photos.length >= 3
+                      ? AppColors.success
+                      : AppColors.textSecondary,
                 ),
               ),
             ],
@@ -955,15 +1247,14 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
           const SizedBox(height: 8),
 
           // Photo Grid (6 slots)
-          GridView.builder(
+          ResponsiveGrid(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.95,
-            ),
+            minTileWidth: 150,
+            maxColumns: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.95,
             itemCount: 6,
             itemBuilder: (context, index) {
               final hasImage = index < photos.length;
@@ -998,17 +1289,27 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                                   color: AppColors.divider,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.add_a_photo_outlined, color: AppColors.textSecondary, size: 22),
+                                child: const Icon(
+                                  Icons.add_a_photo_outlined,
+                                  color: AppColors.textSecondary,
+                                  size: 22,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8.0,
+                                ),
                                 child: Text(
                                   label,
                                   style: TextStyle(
                                     fontSize: 11,
-                                    fontWeight: label.contains('*') ? FontWeight.bold : FontWeight.w500,
-                                    color: label.contains('*') ? AppColors.primary : AppColors.textSecondary,
+                                    fontWeight: label.contains('*')
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                    color: label.contains('*')
+                                        ? AppColors.primary
+                                        : AppColors.textSecondary,
                                   ),
                                   textAlign: TextAlign.center,
                                   maxLines: 2,
@@ -1030,7 +1331,11 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                                   color: Colors.black54,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(Icons.close, color: Colors.white, size: 16),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
                               ),
                             ),
                           ),
@@ -1042,11 +1347,17 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                             left: 0,
                             right: 0,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 4,
+                                horizontal: 6,
+                              ),
                               color: Colors.black.withValues(alpha: 0.6),
                               child: Text(
                                 label,
-                                style: const TextStyle(color: Colors.white, fontSize: 10),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                ),
                                 textAlign: TextAlign.center,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1071,7 +1382,11 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               ),
               child: Text(
                 state.errorMessage!,
-                style: const TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: AppColors.error,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(height: 16),
@@ -1084,20 +1399,29 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
               decoration: BoxDecoration(
                 color: AppColors.primaryLight.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: const Row(
                 children: [
                   SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primary,
+                    ),
                   ),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Đang gửi ảnh và trợ lý AI đang phân tích chi tiết sản phẩm... Quá trình có thể mất 15-30 giây.',
-                      style: TextStyle(fontSize: 12, color: AppColors.primaryHover, fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.primaryHover,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -1117,7 +1441,9 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                     if (state.categoryId == null || state.categoryId!.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Vui lòng chọn Danh Mục Thiết Bị trước khi phân tích AI'),
+                          content: Text(
+                            'Vui lòng chọn Danh Mục Thiết Bị trước khi phân tích AI',
+                          ),
                           backgroundColor: AppColors.error,
                         ),
                       );
@@ -1126,7 +1452,9 @@ class _Step1PhotosInitState extends ConsumerState<Step1PhotosInit> {
                     if (_brandController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Vui lòng nhập Thương hiệu thiết bị hoặc chọn gợi ý có sẵn'),
+                          content: Text(
+                            'Vui lòng nhập Thương hiệu thiết bị hoặc chọn gợi ý có sẵn',
+                          ),
                           backgroundColor: AppColors.error,
                         ),
                       );

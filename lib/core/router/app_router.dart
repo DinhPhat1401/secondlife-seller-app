@@ -5,11 +5,13 @@ import '../../features/auth/presentation/auth_providers.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/auth/presentation/register_screen.dart';
 import '../../features/auth/presentation/verify_email_screen.dart';
+import '../../features/auth/presentation/password_recovery_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/credits/presentation/screens/buy_credits_screen.dart';
 import '../../features/credits/presentation/screens/credit_ledger_screen.dart';
 import '../../features/dashboard/presentation/main_shell_screen.dart';
 import '../../features/listings/presentation/screens/create_listing_wizard_screen.dart';
+import '../../features/listings/presentation/screens/edit_listing_draft_screen.dart';
 import '../../features/onboarding/presentation/screens/address_map_picker_screen.dart';
 import '../../features/onboarding/presentation/screens/seller_onboarding_wizard_screen.dart';
 import '../../features/orders/presentation/screens/seller_orders_screen.dart';
@@ -23,15 +25,13 @@ import '../../features/notifications/presentation/screens/notification_center_sc
 import '../../features/profile/presentation/screens/seller_profile_screen.dart';
 import '../../features/reputation/presentation/screens/seller_reputation_screen.dart';
 import '../../features/shipments/presentation/screens/return_shipping_debt_screen.dart';
+import '../../features/reports/presentation/screens/seller_disputes_screen.dart';
 
 class RouterNotifier extends ChangeNotifier {
   final Ref _ref;
 
   RouterNotifier(this._ref) {
-    _ref.listen<AuthState>(
-      authNotifierProvider,
-      (_, _) => notifyListeners(),
-    );
+    _ref.listen<AuthState>(authNotifierProvider, (_, _) => notifyListeners());
   }
 
   String? redirect(BuildContext context, GoRouterState state) {
@@ -41,7 +41,8 @@ class RouterNotifier extends ChangeNotifier {
 
     final authState = _ref.read(authNotifierProvider);
     final isAuth = authState.isAuthenticated;
-    final isAuthRoute = state.matchedLocation == '/login' ||
+    final isAuthRoute =
+        state.matchedLocation == '/login' ||
         state.matchedLocation == '/register' ||
         state.matchedLocation == '/forgot-password';
 
@@ -86,10 +87,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginScreen(),
-      ),
+      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
@@ -102,12 +100,21 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) => const PasswordRecoveryScreen(),
+      ),
+      GoRoute(
         path: '/dashboard',
         builder: (context, state) => const MainShellScreen(),
       ),
       GoRoute(
         path: '/create-listing',
         builder: (context, state) => const CreateListingWizardScreen(),
+      ),
+      GoRoute(
+        path: '/create-listing/:productId/edit',
+        builder: (context, state) =>
+            EditListingDraftScreen(postId: state.pathParameters['productId']!),
       ),
       GoRoute(
         path: '/seller-onboarding',
@@ -178,6 +185,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reputation',
         builder: (context, state) => const SellerReputationScreen(),
+      ),
+      GoRoute(
+        path: '/disputes',
+        builder: (context, state) => const SellerDisputesScreen(),
       ),
       GoRoute(
         path: '/return-shipping-debt',

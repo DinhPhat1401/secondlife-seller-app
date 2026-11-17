@@ -49,7 +49,8 @@ class PostRepository {
         }
       } catch (_) {}
 
-      final fileName = 'listing_img_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
+      final fileName =
+          'listing_img_${DateTime.now().millisecondsSinceEpoch}_$i.jpg';
 
       formData.files.add(
         MapEntry(
@@ -90,7 +91,9 @@ class PostRepository {
     );
 
     if (response.data == null) {
-      throw AppException(message: 'Không nhận được dữ liệu khởi tạo tin đăng từ máy chủ');
+      throw AppException(
+        message: 'Không nhận được dữ liệu khởi tạo tin đăng từ máy chủ',
+      );
     }
     final payload = response.data!['data'] ?? response.data!;
     return PostInitResponseModel.fromJson(payload as Map<String, dynamic>);
@@ -118,7 +121,8 @@ class PostRepository {
     final data = response.data;
     if (data is Map) {
       final payload = data['data'] ?? data;
-      final reply = payload['reply'] ?? payload['message'] ?? payload['response'] ?? '';
+      final reply =
+          payload['reply'] ?? payload['message'] ?? payload['response'] ?? '';
       return reply.toString();
     } else if (data is String) {
       return data;
@@ -150,9 +154,13 @@ class PostRepository {
     } on DioException catch (dioErr) {
       final status = dioErr.response?.statusCode;
       final bodyStr = dioErr.response?.data?.toString() ?? '';
-      if (status == 409 || bodyStr.toLowerCase().contains('already completed')) {
+      if (status == 409 ||
+          bodyStr.toLowerCase().contains('already completed')) {
         try {
-          final regenText = await regenerateChat(sessionId: sessionId, message: message);
+          final regenText = await regenerateChat(
+            sessionId: sessionId,
+            message: message,
+          );
           return PostFinalizeResponseModel(description: regenText);
         } catch (_) {}
       }
@@ -175,17 +183,17 @@ class PostRepository {
     );
 
     final data = response.data ?? {};
-    final desc = data['description'] ?? data['finalDescription'] ?? data['data']?['description'];
+    final desc =
+        data['description'] ??
+        data['finalDescription'] ??
+        data['data']?['description'];
     if (desc != null && desc.toString().isNotEmpty) {
       return desc.toString();
     }
     throw AppException(message: 'Không thể tạo lại mô tả từ máy chủ');
   }
 
-  Future<String> suggestTitle({
-    required String postId,
-    String? context,
-  }) async {
+  Future<String> suggestTitle({required String postId, String? context}) async {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.postSuggestTitle(postId),
       data: context != null ? {'context': context} : {},
@@ -209,7 +217,9 @@ class PostRepository {
   }) async {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.postAcceptDescription(postId),
-      data: description != null && description.isNotEmpty ? {'description': description} : {},
+      data: description != null && description.isNotEmpty
+          ? {'description': description}
+          : {},
       options: Options(
         sendTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
@@ -221,9 +231,7 @@ class PostRepository {
     return (response.data!['data'] ?? response.data!) as Map<String, dynamic>;
   }
 
-  Future<AiPriceEstimationModel> estimatePrice({
-    required String postId,
-  }) async {
+  Future<AiPriceEstimationModel> estimatePrice({required String postId}) async {
     final response = await client.post<Map<String, dynamic>>(
       ApiEndpoints.postAiPriceEstimation(postId),
       data: {'requestId': const Uuid().v4()},
@@ -234,14 +242,18 @@ class PostRepository {
     );
 
     if (response.data == null) {
-      throw AppException(message: 'Không nhận được kết quả định giá từ máy chủ');
+      throw AppException(
+        message: 'Không nhận được kết quả định giá từ máy chủ',
+      );
     }
     final payload = response.data!['data'] ?? response.data!;
     return AiPriceEstimationModel.fromJson(payload as Map<String, dynamic>);
   }
 
   /// GET /api/v1/posts/{id}/ai-price-estimation/history
-  Future<List<AiPriceEstimationModel>> getAiPriceEstimationHistory(String postId) async {
+  Future<List<AiPriceEstimationModel>> getAiPriceEstimationHistory(
+    String postId,
+  ) async {
     try {
       final response = await client.get<Map<String, dynamic>>(
         ApiEndpoints.postAiPriceEstimationHistory(postId),
@@ -254,7 +266,11 @@ class PostRepository {
       } else if (payload is Map && payload['content'] is List) {
         list = payload['content'] as List;
       }
-      return list.map((e) => AiPriceEstimationModel.fromJson(e as Map<String, dynamic>)).toList();
+      return list
+          .map(
+            (e) => AiPriceEstimationModel.fromJson(e as Map<String, dynamic>),
+          )
+          .toList();
     } catch (e) {
       return [];
     }
@@ -284,6 +300,17 @@ class PostRepository {
     );
   }
 
+  Future<Map<String, dynamic>> getMyPostDetail(String postId) async {
+    final response = await client.get<Map<String, dynamic>>(
+      ApiEndpoints.myPostDetail(postId),
+    );
+    final data = response.data;
+    if (data == null) {
+      throw AppException(message: 'Không tải được thông tin tin đăng.');
+    }
+    return data;
+  }
+
   Future<PostSubmitResponseModel> submitPost({
     required String postId,
     required Map<String, dynamic> data,
@@ -305,10 +332,7 @@ class PostRepository {
     int page = 0,
     int size = 20,
   }) async {
-    final queryParams = <String, dynamic>{
-      'page': page,
-      'size': size,
-    };
+    final queryParams = <String, dynamic>{'page': page, 'size': size};
     if (status != null && status.isNotEmpty && status != 'ALL') {
       queryParams['status'] = status;
     }
@@ -330,7 +354,10 @@ class PostRepository {
       }
     }
     return list
-        .map((item) => SellerListingItemModel.fromJson(item as Map<String, dynamic>))
+        .map(
+          (item) =>
+              SellerListingItemModel.fromJson(item as Map<String, dynamic>),
+        )
         .toList();
   }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/responsive/responsive.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -28,7 +29,10 @@ class DashboardTab extends ConsumerWidget {
     final reputationState = ref.watch(reputationNotifierProvider);
     final returnDebtState = ref.watch(returnShippingDebtProvider);
     final user = authState.user;
-    final currencyFormatter = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
+    final currencyFormatter = NumberFormat.currency(
+      locale: 'vi_VN',
+      symbol: 'đ',
+    );
     final hideBalance = ref.watch(hideWalletBalanceProvider);
 
     return Scaffold(
@@ -53,8 +57,13 @@ class DashboardTab extends ConsumerWidget {
                     radius: 18,
                     backgroundColor: AppColors.primaryLight,
                     child: Text(
-                      user?.fullName.isNotEmpty == true ? user!.fullName[0].toUpperCase() : 'S',
-                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
+                      user?.fullName.isNotEmpty == true
+                          ? user!.fullName[0].toUpperCase()
+                          : 'S',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -66,23 +75,34 @@ class DashboardTab extends ConsumerWidget {
                   children: [
                     Text(
                       user?.fullName ?? 'Kênh Người Bán',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                     Row(
                       children: [
                         Icon(
-                          user?.isSeller == true ? Icons.verified_rounded : Icons.storefront_outlined,
+                          user?.isSeller == true
+                              ? Icons.verified_rounded
+                              : Icons.storefront_outlined,
                           size: 13,
-                          color: user?.isSeller == true ? AppColors.success : AppColors.warning,
+                          color: user?.isSeller == true
+                              ? AppColors.success
+                              : AppColors.warning,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            user?.isSeller == true ? 'Shop Đã Xác Thực' : 'Chưa Định Danh',
+                            user?.isSeller == true
+                                ? 'Shop Đã Xác Thực'
+                                : 'Chưa Định Danh',
                             style: TextStyle(
                               fontSize: 11,
-                              color: user?.isSeller == true ? AppColors.success : AppColors.warning,
+                              color: user?.isSeller == true
+                                  ? AppColors.success
+                                  : AppColors.warning,
                               fontWeight: FontWeight.w600,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -121,7 +141,11 @@ class DashboardTab extends ConsumerWidget {
                     ),
                     child: Text(
                       unreadCount > 9 ? '9+' : '$unreadCount',
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -130,499 +154,783 @@ class DashboardTab extends ConsumerWidget {
           const SizedBox(width: 6),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await ref.read(creditNotifierProvider.notifier).loadInitialData();
-          await ref.read(sellerWalletNotifierProvider.notifier).loadWalletData();
-          await ref.read(sellerListingsNotifierProvider.notifier).loadListings();
-          await ref.read(orderListNotifierProvider.notifier).loadOrders();
-          await ref.read(notificationNotifierProvider.notifier).loadData();
-          await ref.read(reputationNotifierProvider.notifier).refresh();
-          await ref.read(returnShippingDebtProvider.notifier).refresh();
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Banner: Needs eKYC Verification
-            if (user?.isSeller != true) ...[
-              Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFF7ED), Color(0xFFFEF3C7)],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFFDE68A)),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF59E0B),
-                        shape: BoxShape.circle,
+      body: ResponsiveContent(
+        maxWidth: 1440,
+        mobilePadding: 0,
+        widePadding: 0,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await ref.read(creditNotifierProvider.notifier).loadInitialData();
+            await ref
+                .read(sellerWalletNotifierProvider.notifier)
+                .loadWalletData();
+            await ref
+                .read(sellerListingsNotifierProvider.notifier)
+                .loadListings();
+            await ref.read(orderListNotifierProvider.notifier).loadOrders();
+            await ref.read(notificationNotifierProvider.notifier).loadData();
+            await ref.read(reputationNotifierProvider.notifier).refresh();
+            await ref.read(returnShippingDebtProvider.notifier).refresh();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Banner: Needs eKYC Verification
+                if (user?.isSeller != true) ...[
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFF7ED), Color(0xFFFEF3C7)],
                       ),
-                      child: const Icon(Icons.verified_user_outlined, color: Colors.white, size: 24),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
                     ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Kích hoạt Quyền Bán Hàng',
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF59E0B),
+                            shape: BoxShape.circle,
                           ),
-                          const SizedBox(height: 2),
-                          const Text(
-                            'Hoàn tất định danh eKYC để đăng bán thiết bị gia dụng',
-                            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          child: const Icon(
+                            Icons.verified_user_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Kích hoạt Quyền Bán Hàng',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              const Text(
+                                'Hoàn tất định danh eKYC để đăng bán thiết bị gia dụng',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF59E0B),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          onPressed: () => context.push('/seller-onboarding'),
+                          child: const Text(
+                            'Xác thực',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Banner: Return Shipping Debt Alert
+                if (returnDebtState.debt.outstandingDebt > 0) ...[
+                  InkWell(
+                    onTap: () => context.push('/return-shipping-debt'),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.errorLight,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.error, width: 1.2),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.assignment_return_outlined,
+                            color: AppColors.error,
+                            size: 26,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Nợ Cước Vận Chuyển Hoàn Hàng',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: AppColors.error,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Bạn có khoản nợ cước ${currencyFormatter.format(returnDebtState.debt.outstandingDebt)} cần tất toán.',
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: AppColors.error,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFF59E0B),
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                      onPressed: () => context.push('/seller-onboarding'),
-                      child: const Text('Xác thực', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Banner: Return Shipping Debt Alert
-            if (returnDebtState.debt.outstandingDebt > 0) ...[
-              InkWell(
-                onTap: () => context.push('/return-shipping-debt'),
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.errorLight,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.error, width: 1.2),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.assignment_return_outlined, color: AppColors.error, size: 26),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Nợ Cước Vận Chuyển Hoàn Hàng',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.error),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Bạn có khoản nợ cước ${currencyFormatter.format(returnDebtState.debt.outstandingDebt)} cần tất toán.',
-                              style: const TextStyle(fontSize: 11, color: AppColors.textPrimary),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.error),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-
-            // Banner: Reputation Restriction Alert
-            if (reputationState.reputation?.sellingRestricted == true) ...[
-              InkWell(
-                onTap: () => context.push('/reputation'),
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.warningLight,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: AppColors.warning, width: 1.2),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 26),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Hạn Chế Đăng Bán Đang Áp Dụng',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.orange),
-                            ),
-                            SizedBox(height: 2),
-                            Text(
-                              'Tài khoản đang bị hạn chế do vi phạm hoặc điểm uy tín thấp.',
-                              style: TextStyle(fontSize: 11, color: AppColors.textPrimary),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.warning),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-
-            // Unified Wallet & Credit Hub Card
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
                   ),
                 ],
-              ),
-              child: Column(
-                children: [
-                  // --- TOP: SỐ DƯ VÍ NỘI BỘ ---
-                  Padding(
-                    padding: const EdgeInsets.all(18.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Row(
+
+                // Banner: Reputation Restriction Alert
+                if (reputationState.reputation?.sellingRestricted == true) ...[
+                  InkWell(
+                    onTap: () => context.push('/reputation'),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.warningLight,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.warning,
+                          width: 1.2,
+                        ),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: AppColors.warning,
+                            size: 26,
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary, size: 20),
-                                SizedBox(width: 8),
                                 Text(
-                                  'Số Dư Ví Nội Bộ',
-                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                                  'Hạn Chế Đăng Bán Đang Áp Dụng',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: Colors.orange,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Tài khoản đang bị hạn chế do vi phạm hoặc điểm uy tín thấp.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: AppColors.textPrimary,
+                                  ),
                                 ),
                               ],
                             ),
-                            GestureDetector(
-                              onTap: () => context.push('/wallet'),
-                              child: const Text(
-                                'Chi tiết >',
-                                style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              hideBalance
-                                  ? '•••••••• đ'
-                                  : currencyFormatter.format(walletState.wallet?.balance ?? 0.0),
-                              style: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: Icon(
-                                hideBalance ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                                size: 20,
-                                color: AppColors.textSecondary,
-                              ),
-                              tooltip: hideBalance ? 'Hiện số dư' : 'Ẩn số dư',
-                              onPressed: () {
-                                ref.read(hideWalletBalanceProvider.notifier).toggle();
-                              },
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                ),
-                                icon: const Icon(Icons.account_balance_wallet_outlined, size: 18),
-                                label: const Text('Rút tiền về ngân hàng', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-                                onPressed: () => context.push('/wallet'),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 14,
+                            color: AppColors.warning,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
+                ],
 
-                  // --- SUBTLE DIVIDER ---
-                  const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
-
-                  // --- BOTTOM: TÍN DỤNG SECONDLIFE ---
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFFAFBFD),
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Unified Wallet & Credit Hub Card
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // --- TOP: SỐ DƯ VÍ NỘI BỘ ---
+                      Padding(
+                        padding: const EdgeInsets.all(18.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Row(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Icon(Icons.stars_rounded, color: Color(0xFFF59E0B), size: 20),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Tín Dụng SecondLife',
-                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                                ),
-                              ],
-                            ),
-                            GestureDetector(
-                              onTap: () => context.push('/credits/buy'),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: const Row(
+                                const Row(
                                   children: [
-                                    Icon(Icons.add, color: AppColors.primary, size: 13),
-                                    SizedBox(width: 4),
+                                    Icon(
+                                      Icons.account_balance_wallet_outlined,
+                                      color: AppColors.primary,
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: 8),
                                     Text(
-                                      'Mua thêm',
-                                      style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
+                                      'Số Dư Ví Nội Bộ',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
+                                GestureDetector(
+                                  onTap: () => context.push('/wallet'),
+                                  child: const Text(
+                                    'Chi tiết >',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Text(
+                                  hideBalance
+                                      ? '•••••••• đ'
+                                      : currencyFormatter.format(
+                                          walletState.wallet?.balance ?? 0.0,
+                                        ),
+                                  style: const TextStyle(
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: Icon(
+                                    hideBalance
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 20,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                  tooltip: hideBalance
+                                      ? 'Hiện số dư'
+                                      : 'Ẩn số dư',
+                                  onPressed: () {
+                                    ref
+                                        .read(
+                                          hideWalletBalanceProvider.notifier,
+                                        )
+                                        .toggle();
+                                  },
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    icon: const Icon(
+                                      Icons.account_balance_wallet_outlined,
+                                      size: 18,
+                                    ),
+                                    label: const Text(
+                                      'Rút tiền về ngân hàng',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    onPressed: () => context.push('/wallet'),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Row(
+                      ),
+
+                      // --- SUBTLE DIVIDER ---
+                      const Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: Color(0xFFF1F5F9),
+                      ),
+
+                      // --- BOTTOM: TÍN DỤNG SECONDLIFE ---
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 18,
+                          vertical: 14,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFFAFBFD),
+                          borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(20),
+                          ),
+                        ),
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Lượt Đăng Tin',
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Row(
+                                  children: [
+                                    Icon(
+                                      Icons.stars_rounded,
+                                      color: Color(0xFFF59E0B),
+                                      size: 20,
+                                    ),
+                                    SizedBox(width: 6),
+                                    Text(
+                                      'Tín Dụng SecondLife',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                GestureDetector(
+                                  onTap: () => context.push('/credits/buy'),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.add,
+                                          color: AppColors.primary,
+                                          size: 13,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          'Mua thêm',
+                                          style: TextStyle(
+                                            color: AppColors.primary,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${creditState.balance.postCredits} lượt',
-                                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            Container(width: 1, height: 28, color: const Color(0xFFE2E8F0)),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Lượt Chat AI',
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Lượt Đăng Tin',
+                                        style: TextStyle(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${creditState.balance.postCredits} lượt',
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${creditState.balance.chatCredits} lượt',
-                                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 28,
+                                  color: const Color(0xFFE2E8F0),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Lượt Chat AI',
+                                        style: TextStyle(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${creditState.balance.chatCredits} lượt',
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                            Container(width: 1, height: 28, color: const Color(0xFFE2E8F0)),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Lượt AI Định Giá',
-                                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w500),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                ),
+                                Container(
+                                  width: 1,
+                                  height: 28,
+                                  color: const Color(0xFFE2E8F0),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Lượt AI Định Giá',
+                                        style: TextStyle(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        '${creditState.balance.valuationCredits} lượt',
+                                        style: const TextStyle(
+                                          color: AppColors.textPrimary,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    '${creditState.balance.valuationCredits} lượt',
-                                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Section: Quick Stats
+                const Text(
+                  'Tình Hình Kinh Doanh',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _buildStatBox(
+                      context,
+                      listingsState.listings
+                          .where((p) => p.status == ListingStatus.active)
+                          .length
+                          .toString(),
+                      'Đang bán',
+                      Icons.check_circle_outline,
+                      AppColors.success,
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatBox(
+                      context,
+                      orderState.orders
+                          .where(
+                            (o) =>
+                                o.status == OrderStatus.confirmed ||
+                                o.status == OrderStatus.pending ||
+                                o.status == OrderStatus.shipping,
+                          )
+                          .length
+                          .toString(),
+                      'Đơn hàng',
+                      Icons.local_shipping_outlined,
+                      AppColors.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    _buildStatBox(
+                      context,
+                      listingsState.listings
+                          .where(
+                            (p) =>
+                                p.status == ListingStatus.pending ||
+                                p.status == ListingStatus.draft,
+                          )
+                          .length
+                          .toString(),
+                      'Nháp / Duyệt',
+                      Icons.hourglass_top_rounded,
+                      AppColors.warning,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // Quick Shortcut Actions
+                const Text(
+                  'Thao Tác Nhanh',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.add_photo_alternate_outlined,
+                      color: AppColors.primary,
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Section: Quick Stats
-            const Text(
-              'Tình Hình Kinh Doanh',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _buildStatBox(
-                  context,
-                  listingsState.listings.where((p) => p.status == ListingStatus.active).length.toString(),
-                  'Đang bán',
-                  Icons.check_circle_outline,
-                  AppColors.success,
+                  title: const Text(
+                    'Đăng Tin Đồ Gia Dụng Mới',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  subtitle: const Text(
+                    'Hỗ trợ trợ lý AI viết mô tả và định giá',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textMuted,
+                  ),
+                  onTap: () => context.push('/create-listing'),
                 ),
-                const SizedBox(width: 12),
-                _buildStatBox(
-                  context,
-                  orderState.orders.where((o) => o.status == OrderStatus.confirmed || o.status == OrderStatus.pending || o.status == OrderStatus.shipping).length.toString(),
-                  'Đơn hàng',
-                  Icons.local_shipping_outlined,
-                  AppColors.primary,
+                const SizedBox(height: 8),
+                ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEDD5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.support_agent_outlined,
+                      color: Color(0xFFEA580C),
+                    ),
+                  ),
+                  title: const Text(
+                    'Khiếu nại của tôi',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  subtitle: const Text(
+                    'Theo dõi trạng thái và kết quả xử lý báo cáo',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textMuted,
+                  ),
+                  onTap: () => context.push('/disputes'),
                 ),
-                const SizedBox(width: 12),
-                _buildStatBox(
-                  context,
-                  listingsState.listings.where((p) => p.status == ListingStatus.pending || p.status == ListingStatus.draft).length.toString(),
-                  'Nháp / Duyệt',
-                  Icons.hourglass_top_rounded,
-                  AppColors.warning,
+                const SizedBox(height: 8),
+                ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.military_tech_outlined,
+                      color: Color(0xFFD97706),
+                    ),
+                  ),
+                  title: const Text(
+                    'Điểm Uy Tín Người Bán',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    reputationState.reputation?.score != null
+                        ? '${reputationState.reputation!.score!.toStringAsFixed(0)}/100 điểm • ${reputationState.reputation!.tierName}'
+                        : 'Xem đánh giá uy tín và lịch sử vi phạm',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textMuted,
+                  ),
+                  onTap: () => context.push('/reputation'),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEE2E2),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.assignment_return_outlined,
+                      color: AppColors.error,
+                    ),
+                  ),
+                  title: const Text(
+                    'Nợ Cước Hoàn Hàng',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    returnDebtState.debt.outstandingDebt > 0
+                        ? 'Còn nợ: ${currencyFormatter.format(returnDebtState.debt.outstandingDebt)}'
+                        : 'Không có nợ cước hoàn trả',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: returnDebtState.debt.outstandingDebt > 0
+                          ? AppColors.error
+                          : AppColors.textSecondary,
+                      fontWeight: returnDebtState.debt.outstandingDebt > 0
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                    ),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textMuted,
+                  ),
+                  onTap: () => context.push('/return-shipping-debt'),
+                ),
+                const SizedBox(height: 8),
+                ListTile(
+                  tileColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E7FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.location_on_outlined,
+                      color: Color(0xFF4F46E5),
+                    ),
+                  ),
+                  title: const Text(
+                    'Cài Đặt Kho Lấy Hàng (GPS)',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  subtitle: const Text(
+                    'Chọn địa chỉ trên bản đồ để tài xế Lalamove tới lấy',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                  trailing: const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.textMuted,
+                  ),
+                  onTap: () => context.push('/seller-address'),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-
-            // Quick Shortcut Actions
-            const Text(
-              'Thao Tác Nhanh',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 12),
-            ListTile(
-              tileColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: const BorderSide(color: AppColors.border),
-              ),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary),
-              ),
-              title: const Text('Đăng Tin Đồ Gia Dụng Mới', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              subtitle: const Text('Hỗ trợ trợ lý AI viết mô tả và định giá', style: TextStyle(fontSize: 12)),
-              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-              onTap: () => context.push('/create-listing'),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              tileColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: const BorderSide(color: AppColors.border),
-              ),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.military_tech_outlined, color: Color(0xFFD97706)),
-              ),
-              title: const Text('Điểm Uy Tín Người Bán', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              subtitle: Text(
-                reputationState.reputation?.score != null
-                    ? '${reputationState.reputation!.score!.toStringAsFixed(0)}/100 điểm • ${reputationState.reputation!.tierName}'
-                    : 'Xem đánh giá uy tín và lịch sử vi phạm',
-                style: const TextStyle(fontSize: 12),
-              ),
-              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-              onTap: () => context.push('/reputation'),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              tileColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: const BorderSide(color: AppColors.border),
-              ),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: const Color(0xFFFEE2E2), borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.assignment_return_outlined, color: AppColors.error),
-              ),
-              title: const Text('Nợ Cước Hoàn Hàng', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              subtitle: Text(
-                returnDebtState.debt.outstandingDebt > 0
-                    ? 'Còn nợ: ${currencyFormatter.format(returnDebtState.debt.outstandingDebt)}'
-                    : 'Không có nợ cước hoàn trả',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: returnDebtState.debt.outstandingDebt > 0 ? AppColors.error : AppColors.textSecondary,
-                  fontWeight: returnDebtState.debt.outstandingDebt > 0 ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-              onTap: () => context.push('/return-shipping-debt'),
-            ),
-            const SizedBox(height: 8),
-            ListTile(
-              tileColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-                side: const BorderSide(color: AppColors.border),
-              ),
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(color: const Color(0xFFE0E7FF), borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.location_on_outlined, color: Color(0xFF4F46E5)),
-              ),
-              title: const Text('Cài Đặt Kho Lấy Hàng (GPS)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-              subtitle: const Text('Chọn địa chỉ trên bản đồ để tài xế Lalamove tới lấy', style: TextStyle(fontSize: 12)),
-              trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
-              onTap: () => context.push('/seller-address'),
-            ),
-          ],
+          ),
         ),
-      ),
       ),
     );
   }
 
-  Widget _buildStatBox(BuildContext context, String value, String label, IconData icon, Color color) {
+  Widget _buildStatBox(
+    BuildContext context,
+    String value,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -636,9 +944,18 @@ class DashboardTab extends ConsumerWidget {
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(height: 8),
-            Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 2),
-            Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
       ),

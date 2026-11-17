@@ -49,8 +49,10 @@ void main() {
       expect(order.shippingFee, 120000.0);
       expect(order.deliveryAddress, isNotNull);
       expect(order.deliveryAddress!.name, 'Nguyễn Văn A');
-      expect(order.deliveryAddress!.fullAddressText,
-          '123 Nguyễn Văn Cừ, Phường 4, TP. Hồ Chí Minh');
+      expect(
+        order.deliveryAddress!.fullAddressText,
+        '123 Nguyễn Văn Cừ, Phường 4, TP. Hồ Chí Minh',
+      );
     });
   });
 
@@ -175,13 +177,14 @@ void main() {
         id: 'msg-2',
         conversationId: 'room-01',
         senderId: 'SYSTEM',
-        messageContent: 'SYSTEM: {"type":"OFFER","status":"PENDING","price":850000,"negotiationId":"neg-999"}',
+        messageContent:
+            'SYSTEM: {"type":"OFFER","status":"PENDING","price":850000,"negotiationId":"neg-999"}',
         sentAt: '2026-10-14T11:05:00Z',
       );
 
       expect(systemOfferMsg.isSystem, isTrue);
       expect(systemOfferMsg.isOffer, isTrue);
-      expect(systemOfferMsg.cleanText, 'Đề xuất giá mới: 850000 đ');
+      expect(systemOfferMsg.cleanText, 'Đề xuất giá mới: 850.000 đ');
       expect(systemOfferMsg.offerPayload?['price'], 850000);
       expect(systemOfferMsg.offerPayload?['negotiationId'], 'neg-999');
     });
